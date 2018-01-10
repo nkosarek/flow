@@ -12,38 +12,25 @@ from engine import *
 ##########################################
 
 
-### Mouse Event Wrappers ###
-
-def mouse_click_wrapper(event, view, state):
-    if state.in_game:
-        mouse_click(event, view, state)
-        view.redraw_in_game(state)
-
-
-def mouse_drag_wrapper(event, view, state):
-    if state.in_game:
-        mouse_drag(event, view, state)
-        view.redraw_in_game(state)
-
-
-def mouse_release_wrapper(event, view, state):
-    if state.in_game:
-        mouse_release(event, view, state)
-        view.redraw_in_game(state)
-
-
 ### Mouse Events ###
 
 def mouse_click(event, view, state):
-    pass
+    if state.in_game:
+        view.redraw_in_game(state)
 
 
+# TODO: only redraw sometimes
 def mouse_drag(event, view, state):
-    pass
+    if state.in_game:
+        view.redraw_in_game(state)
 
 
 def mouse_release(event, view, state):
-    pass
+    if state.in_game:
+        if view.changing_window:
+            view.changing_window = False
+            view.redraw_in_game(state)
+            return
 
 
 ### Button Events ###
@@ -62,18 +49,10 @@ def level_select_level(view, state, level):
 
 
 ### Window Events ###
-# TODO: remove? maybe unnecessary
 
-#def window_change_wrapper(event, view, state):
-#    window_change(event, view)
-#    if state.in_game:
-#        view.redraw_in_game(state)
-
-
-#def window_change(event, view):
-#    view.window_width = event.width
-#    view.window_height = event.height
-#    view.resize_board()
+def window_change(view, state):
+    if state.in_game:
+        view.changing_window = True
 
 
 ##########################################
@@ -121,25 +100,37 @@ class InGame(Page):
         self.label = tk.Label(self)
         self.label.pack()
 
-        self.canvas_width = view.window_width/2
-        self.canvas_height = view.window_height/2
-        self.canvas = tk.Canvas(self)
+        self.canvas = tk.Canvas(self, bg="#888")
         self.canvas.pack(fill="both", expand=True)
         self.visible = False
 
-    def update_and_show(self, view, state):
+    def update_and_show(self, state):
         self.label.config(text="Level %d" % state.level)
         self.canvas.delete(tk.ALL)
-        InGame._draw_board(self.canvas, view, state)
+
+        InGame._draw_board(self.canvas, state)
+
         self.canvas.update()
         if not self.visible:
             self.show()
             self.visible = True
 
     @staticmethod
-    def _draw_board(canvas, view, state):
-        space_width = 20
-        canvas.create_rectangle(0,0,20,20, fill="black")
+    def _draw_board(canvas, state):
+        rows, cols = state.board.rows, state.board.cols
+        board_dimen = GameView.get_board_dimen(canvas.winfo_width(),
+                                               canvas.winfo_height(),
+                                               rows,
+                                               cols)
+        board_x0, board_y0, space_width = board_dimen
+
+        for row in xrange(rows):
+            for col in xrange(cols):
+                x0 = board_x0 + col * space_width
+                y0 = board_y0 + row * space_width
+                x1 = x0 + space_width
+                y1 = y0 + space_width
+                canvas.create_rectangle(x0, y0, x1, y1, fill="black", outline="white")
 
 
 class GameView:
@@ -147,6 +138,7 @@ class GameView:
         self.root = root
         self.window_width = window_width
         self.window_height = window_height
+        self.changing_window = False
 
         self.menu = Menu(self, root)
         self.level_select = LevelSelect(self, state, root)
@@ -167,8 +159,23 @@ class GameView:
         self.level_select.show()
 
     def redraw_in_game(self, state):
-        self.in_game.update_and_show(self, state)
+        self.in_game.update_and_show(state)
 
+    @staticmethod
+    def get_board_dimen(canvas_width, canvas_height, rows, cols):
+        space_width = 50
+        width_left = -1
+        height_left = -1
+        while (width_left < 0 or height_left < 0) and space_width >= 10:
+            space_width -= 5
+            board_width = space_width * cols
+            board_height = space_width * rows
+            width_left = canvas_width - board_width
+            height_left = canvas_height - board_height
+
+        board_x0 = width_left/2
+        board_y0 = height_left/2
+        return board_x0, board_y0, space_width
 
 
 ##########################################
@@ -190,26 +197,28 @@ class Space:
 
 
 class Board:
+    def __init__(self, rows, cols, dots):
+        self.rows = rows
+        self.cols = cols
+        self.spaces = Board._create_spaces(rows, cols, dots)
+
     @staticmethod
-    def _create_spaces(height, width, dots):
+    def _create_spaces(rows, cols, dots):
         # Create board of spaces
         spaces = []
-        for _ in xrange(height):
+        for _ in xrange(rows):
             row = []
-            for _ in xrange(width):
+            for _ in xrange(cols):
                 row.append(Space())
             spaces.append(row)
 
         # Place appropriate dots in board spaces
         for dotIndex in xrange(len(dots)):
-            (dot_y0, dot_x0, dot_y1, dot_x1) = dots[dotIndex]
-            spaces[dot_y0][dot_x0].set_dot(dotIndex)
-            spaces[dot_y1][dot_x1].set_dot(dotIndex)
+            (dot_row0, dot_col0, dot_row1, dot_col1) = dots[dotIndex]
+            spaces[dot_row0][dot_col0].set_dot(dotIndex)
+            spaces[dot_row1][dot_col1].set_dot(dotIndex)
 
         return spaces
-
-    def __init__(self, height, width, dots):
-        self.spaces = Board._create_spaces(height, width, dots)
 
 
 class GameState:
@@ -219,9 +228,10 @@ class GameState:
         self.level = None
 
     def start_level(self, level):
+        self.in_game = True
         self.level = level
-        height, width, dots = get_board_setup(level)
-        self.board = Board(height, width, dots)
+        rows, cols, dots = get_board_setup(level)
+        self.board = Board(rows, cols, dots)
 
 
 ##########################################
@@ -237,10 +247,10 @@ def main():
 
     view = GameView(root, state, WINDOW_WIDTH, WINDOW_HEIGHT)
 
-    root.bind("<Button-1>", lambda event: mouse_click_wrapper(event, view, state))
-    root.bind("<B1-Motion>", lambda event: mouse_drag_wrapper(event, view, state))
-    root.bind("<ButtonRelease-1>", lambda event: mouse_release_wrapper(event, view, state))
-#    root.bind("<Configure>", lambda event: window_change_wrapper(event, view, state))
+    root.bind("<Button-1>", lambda event: mouse_click(event, view, state))
+    root.bind("<B1-Motion>", lambda event: mouse_drag(event, view, state))
+    root.bind("<ButtonRelease-1>", lambda event: mouse_release(event, view, state))
+    root.bind("<Configure>", lambda event: window_change(view, state))
 
     root.wm_geometry("%sx%s" % (WINDOW_WIDTH, WINDOW_HEIGHT))
     root.mainloop()

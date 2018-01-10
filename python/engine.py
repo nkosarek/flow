@@ -11,4 +11,4 @@ NUM_LEVELS = 5
 
 def get_board_setup(level=0):
     print level
-    return 5, 5, [(0,0,1,1)]
+    return 5, 10, [(0,0,1,1)]
