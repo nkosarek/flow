@@ -1,7 +1,13 @@
-# TODO: base game, click and drag away from button, button click highlight
-# TODO: multiple levels, bridges, walls, custom boards, custom board validation
+# TODO: Dot select then immediate unselect, dots block pipes
+# TODO: No pipe continue after correct dot, pipe autocomplete after dot block
+# TODO: Game completion, perfect game, next/restart/last buttons
+# TODO: back to menu button in level select and game, stats page
 
 # TODO?: Space interface (dot space, bridge space, etc)
+
+# TODO: click and drag away from button doesn't click button
+# TODO: bridges, walls, custom boards, custom board validation
+
 
 import Tkinter as tk
 from engine import *
@@ -19,7 +25,7 @@ def mouse_click(event, view, state):
         return
 
     space = view.in_game.selected_space(event, state.board)
-    if space.dot is None and space.fill is None:
+    if space is None or (space.dot is None and space.fill is None):
         return
     elif space.dot is not None:
         if space.fill is None:
@@ -45,7 +51,7 @@ def mouse_drag(event, view, state):
 
     new_space = view.in_game.selected_space(event, state.board)
     old_space = state.curr_selected_space
-    if new_space is None or new_space == old_space or\
+    if new_space is None or old_space is None or new_space == old_space or\
             (new_space.row != old_space.row and
              new_space.col != old_space.col):
         return
@@ -143,7 +149,10 @@ class InGame(Page):
     def selected_space(self, event, board):
         row = (event.y - self.board_y0)/self.space_width
         col = (event.x - self.board_x0)/self.space_width
-        return board.spaces[row][col]
+        if row < 0 or row >= board.rows or col < 0 or col >= board.cols:
+            return None
+        else:
+            return board.spaces[row][col]
 
     def update_and_show(self, state):
         self.label.config(text="Level %d" % state.level)
@@ -315,7 +324,7 @@ class GameState:
     def start_level(self, level):
         self.in_game = True
         self.level = level
-        rows, cols, dots = get_board_setup(level)
+        (rows, cols, dots) = BOARD_SETUP[level]
         self.board = Board(rows, cols, dots)
 
 
