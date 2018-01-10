@@ -1,4 +1,3 @@
-# TODO: dots block pipes
 # TODO: No pipe continue after correct dot, pipe autocomplete after dot block
 # TODO: Game completion, perfect game, next/restart/last buttons
 # TODO: back to menu button in level select and game, stats page
@@ -8,6 +7,7 @@
 # TODO: click and drag away from button doesn't click button
 # TODO: bridges, walls, custom boards, custom board validation
 
+# TODO: BUG: if pipe cuts off different color pipe, it becomes next_space in the cut off one
 
 import Tkinter as tk
 from engine import *
@@ -55,7 +55,8 @@ def mouse_drag(event, view, state):
     old_space = state.curr_selected_space
     if new_space is None or old_space is None or\
             new_space == old_space or old_space.fill is None or\
-            not Board.adjacent_spaces(new_space, old_space):
+            not Board.adjacent_spaces(new_space, old_space) or\
+            not Board.compatible_dot(new_space, old_space):
         # TODO: adjacent fail could result in autocomplete instead of early return
         return
 
@@ -340,6 +341,18 @@ class Board:
                 return True
         else:
             return False
+
+    @staticmethod
+    def compatible_dot(dot_space, curr_space):
+        assert dot_space is not None
+        assert curr_space is not None
+        assert curr_space.fill is not None
+
+        if dot_space.dot is not None and\
+                curr_space.fill.color != dot_space.dot.index:
+            return False
+        else:
+            return True
 
 
 class GameState:
