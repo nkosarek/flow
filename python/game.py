@@ -1,4 +1,4 @@
-# TODO: Dot select then immediate unselect, dots block pipes
+# TODO: dots block pipes
 # TODO: No pipe continue after correct dot, pipe autocomplete after dot block
 # TODO: Game completion, perfect game, next/restart/last buttons
 # TODO: back to menu button in level select and game, stats page
@@ -55,8 +55,8 @@ def mouse_drag(event, view, state):
     old_space = state.curr_selected_space
     if new_space is None or old_space is None or\
             new_space == old_space or old_space.fill is None or\
-            (new_space.row != old_space.row and
-             new_space.col != old_space.col):
+            not Board.adjacent_spaces(new_space, old_space):
+        # TODO: adjacent fail could result in autocomplete instead of early return
         return
 
     old_space.set_next_space(new_space)
@@ -303,12 +303,6 @@ class Board:
         self.spaces = Board._create_spaces(rows, cols, dots)
 
     @staticmethod
-    def clear_pipe(start_space):
-        curr_space = start_space
-        while curr_space is not None:
-            curr_space = curr_space.clear_fill()
-
-    @staticmethod
     def _create_spaces(rows, cols, dots):
         # Create board of spaces
         spaces = []
@@ -327,6 +321,25 @@ class Board:
             dot_space1.set_dot(dot_index, dot_space0)
 
         return spaces
+
+    @staticmethod
+    def clear_pipe(start_space):
+        curr_space = start_space
+        while curr_space is not None:
+            curr_space = curr_space.clear_fill()
+
+    @staticmethod
+    def adjacent_spaces(space0, space1):
+        if space0.row == space1.row:
+            col_diff = space0.col - space1.col
+            if col_diff == 1 or col_diff == -1:
+                return True
+        elif space0.col == space1.col:
+            row_diff = space0.row - space1.row
+            if row_diff == 1 or row_diff == -1:
+                return True
+        else:
+            return False
 
 
 class GameState:
