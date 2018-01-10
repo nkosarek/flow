@@ -118,10 +118,10 @@ class InGame(Page):
     @staticmethod
     def _draw_board(canvas, state):
         rows, cols = state.board.rows, state.board.cols
-        board_dimen = GameView.get_board_dimen(canvas.winfo_width(),
-                                               canvas.winfo_height(),
-                                               rows,
-                                               cols)
+        board_dimen = InGame._get_board_dimensions(canvas.winfo_width(),
+                                                   canvas.winfo_height(),
+                                                   rows,
+                                                   cols)
         board_x0, board_y0, space_width = board_dimen
 
         for row in xrange(rows):
@@ -131,6 +131,22 @@ class InGame(Page):
                 x1 = x0 + space_width
                 y1 = y0 + space_width
                 canvas.create_rectangle(x0, y0, x1, y1, fill="black", outline="white")
+
+    @staticmethod
+    def _get_board_dimensions(canvas_width, canvas_height, rows, cols):
+        space_width = 50
+        width_left = -1
+        height_left = -1
+        while (width_left < 0 or height_left < 0) and space_width >= 10:
+            space_width -= 5
+            board_width = space_width * cols
+            board_height = space_width * rows
+            width_left = canvas_width - board_width
+            height_left = canvas_height - board_height
+
+        board_x0 = width_left/2
+        board_y0 = height_left/2
+        return board_x0, board_y0, space_width
 
 
 class GameView:
@@ -160,22 +176,6 @@ class GameView:
 
     def redraw_in_game(self, state):
         self.in_game.update_and_show(state)
-
-    @staticmethod
-    def get_board_dimen(canvas_width, canvas_height, rows, cols):
-        space_width = 50
-        width_left = -1
-        height_left = -1
-        while (width_left < 0 or height_left < 0) and space_width >= 10:
-            space_width -= 5
-            board_width = space_width * cols
-            board_height = space_width * rows
-            width_left = canvas_width - board_width
-            height_left = canvas_height - board_height
-
-        board_x0 = width_left/2
-        board_y0 = height_left/2
-        return board_x0, board_y0, space_width
 
 
 ##########################################
