@@ -196,18 +196,7 @@ class InGame(Page):
                 y0 = self.board_y0 + row * self.space_width
                 x1 = x0 + self.space_width
                 y1 = y0 + self.space_width
-
-                fill = space.fill
-                if fill is None:
-                    canvas.create_rectangle(x0, y0, x1, y1,
-                                            fill="black", outline="white")
-                else:
-                    canvas.create_rectangle(x0, y0, x1, y1,
-                                            fill=FILL_COLORS[fill.color], outline="white")
-
-                dot = space.dot
-                if dot is not None:
-                    canvas.create_oval(x0+2, y0+2, x1-2, y1-2, fill=DOT_COLORS[dot.index])
+                InGame._draw_space(canvas, space, x0, y0, x1, y1)
 
     @staticmethod
     def _get_board_dimensions(canvas_width, canvas_height, rows, cols):
@@ -224,6 +213,20 @@ class InGame(Page):
         board_x0 = width_left/2
         board_y0 = height_left/2
         return board_x0, board_y0, space_width
+
+    @staticmethod
+    def _draw_space(canvas, space, x0, y0, x1, y1):
+        fill = space.fill
+        if fill is None:
+            canvas.create_rectangle(x0, y0, x1, y1,
+                                    fill="black", outline="white")
+        else:
+            canvas.create_rectangle(x0, y0, x1, y1,
+                                    fill=FILL_COLORS[fill.color], outline="white")
+
+        dot = space.dot
+        if dot is not None:
+            canvas.create_oval(x0+2, y0+2, x1-2, y1-2, fill=DOT_COLORS[dot.index])
 
 
 class GameView:
