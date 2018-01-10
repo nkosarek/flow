@@ -15,22 +15,54 @@ from engine import *
 ### Mouse Events ###
 
 def mouse_click(event, view, state):
-    if state.in_game:
-        view.redraw_in_game(state)
+    if not state.in_game:
+        return
+
+    space = view.in_game.selected_space(event, state.board)
+    if space.dot is None and space.fill is None:
+        return
+    elif space.dot is not None:
+        if space.fill is None:
+            Board.clear_pipe(space.dot.other)
+        else:
+            Board.clear_pipe(space)
+
+        space.set_fill(space.dot.index)
+
+    elif space.fill is not None:
+        color = space.fill.color
+        Board.clear_pipe(space)
+        space.set_fill(color)
+
+    state.curr_selected_space = space
+    view.redraw_in_game(state)
 
 
 # TODO: only redraw sometimes
 def mouse_drag(event, view, state):
-    if state.in_game:
+    if not state.in_game:
+        return
+
+    new_space = view.in_game.selected_space(event, state.board)
+    old_space = state.curr_selected_space
+    if new_space is None or new_space == old_space or\
+            (new_space.row != old_space.row and
+             new_space.col != old_space.col):
+        return
+
+    old_space.set_next_space(new_space)
+    color = old_space.fill.color
+    Board.clear_pipe(new_space)
+    new_space.set_fill(color)
+    state.curr_selected_space = new_space
+
+    view.redraw_in_game(state)
+
+
+def mouse_release(view, state):
+    if state.in_game and view.changing_window:
+        view.changing_window = False
         view.redraw_in_game(state)
-
-
-def mouse_release(event, view, state):
-    if state.in_game:
-        if view.changing_window:
-            view.changing_window = False
-            view.redraw_in_game(state)
-            return
 
 
 ### Button Events ###
@@ -94,7 +126,7 @@ class LevelSelect(Page):
 
 
 class InGame(Page):
-    def __init__(self, view, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         Page.__init__(self, *args, **kwargs)
 
         self.label = tk.Label(self)
@@ -104,33 +136,41 @@ class InGame(Page):
         self.canvas.pack(fill="both", expand=True)
         self.visible = False
 
+        self.board_x0 = 0
+        self.board_y0 = 0
+        self.space_width = 50
+
+    def selected_space(self, event, board):
+        row = (event.y - self.board_y0)/self.space_width
+        col = (event.x - self.board_x0)/self.space_width
+        return board.spaces[row][col]
+
     def update_and_show(self, state):
         self.label.config(text="Level %d" % state.level)
         self.canvas.delete(tk.ALL)
 
-        InGame._draw_board(self.canvas, state)
+        self._draw_board(self.canvas, state)
 
         self.canvas.update()
         if not self.visible:
             self.show()
             self.visible = True
 
-    @staticmethod
-    def _draw_board(canvas, state):
+    def _draw_board(self, canvas, state):
         rows, cols = state.board.rows, state.board.cols
         board_dimen = InGame._get_board_dimensions(canvas.winfo_width(),
                                                    canvas.winfo_height(),
                                                    rows,
                                                    cols)
-        board_x0, board_y0, space_width = board_dimen
+        self.board_x0, self.board_y0, self.space_width = board_dimen
 
         for row in xrange(rows):
             for col in xrange(cols):
                 space = state.board.spaces[row][col]
-                x0 = board_x0 + col * space_width
-                y0 = board_y0 + row * space_width
-                x1 = x0 + space_width
-                y1 = y0 + space_width
+                x0 = self.board_x0 + col * self.space_width
+                y0 = self.board_y0 + row * self.space_width
+                x1 = x0 + self.space_width
+                y1 = y0 + self.space_width
 
                 fill = space.fill
                 if fill is None:
@@ -138,11 +178,11 @@ class InGame(Page):
                                             fill="black", outline="white")
                 else:
                     canvas.create_rectangle(x0, y0, x1, y1,
-                                            fill=FILL_COLORS[fill["dot"]], outline="white")
+                                            fill=FILL_COLORS[fill.color], outline="white")
 
                 dot = space.dot
                 if dot is not None:
-                    canvas.create_oval(x0+2, y0+2, x1-2, y1-2, fill=DOT_COLORS[dot])
+                    canvas.create_oval(x0+2, y0+2, x1-2, y1-2, fill=DOT_COLORS[dot.index])
 
     @staticmethod
     def _get_board_dimensions(canvas_width, canvas_height, rows, cols):
@@ -170,7 +210,7 @@ class GameView:
 
         self.menu = Menu(self, root)
         self.level_select = LevelSelect(self, state, root)
-        self.in_game = InGame(self, root)
+        self.in_game = InGame(root)
 
         self.menu.place(in_=root, x=0, y=0, relwidth=1, relheight=1)
         self.level_select.place(in_=root, x=0, y=0, relwidth=1, relheight=1)
@@ -196,24 +236,40 @@ class GameView:
 
 
 class Fill:
-    def __init__(self, dot, last):
-        self.dot = dot
-        self.last = last
+    def __init__(self, color):
+        self.color = color
+        self.next_space = None
+
+
+class Dot:
+    def __init__(self, index, other):
+        self.index = index
+        self.other = other
 
 
 class Space:
-    def __init__(self):
+    def __init__(self, row, col):
+        self.row = row
+        self.col = col
         self.dot = None
         self.fill = None
 
-    def set_dot(self, dot):
-        self.dot = dot
+    def set_dot(self, index, other):
+        self.dot = Dot(index, other)
 
-    def set_fill(self, dot, last_space):
-        self.fill = Fill(dot, last_space)
+    def set_fill(self, color):
+        self.fill = Fill(color)
+
+    def set_next_space(self, next_space):
+        assert self.fill is not None
+        self.fill.next_space = next_space
 
     def clear_fill(self):
+        if self.fill is None:
+            return None
+        next_space = self.fill.next_space
         self.fill = None
+        return next_space
 
 
 class Board:
@@ -223,20 +279,28 @@ class Board:
         self.spaces = Board._create_spaces(rows, cols, dots)
 
     @staticmethod
+    def clear_pipe(start_space):
+        curr_space = start_space
+        while curr_space is not None:
+            curr_space = curr_space.clear_fill()
+
+    @staticmethod
     def _create_spaces(rows, cols, dots):
         # Create board of spaces
         spaces = []
-        for _ in xrange(rows):
+        for r in xrange(rows):
             row = []
-            for _ in xrange(cols):
-                row.append(Space())
+            for c in xrange(cols):
+                row.append(Space(r, c))
             spaces.append(row)
 
         # Place appropriate dots in board spaces
-        for dotIndex in xrange(len(dots)):
-            (dot_row0, dot_col0, dot_row1, dot_col1) = dots[dotIndex]
-            spaces[dot_row0][dot_col0].set_dot(dotIndex)
-            spaces[dot_row1][dot_col1].set_dot(dotIndex)
+        for dot_index in xrange(len(dots)):
+            (dot_row0, dot_col0, dot_row1, dot_col1) = dots[dot_index]
+            dot_space0 = spaces[dot_row0][dot_col0]
+            dot_space1 = spaces[dot_row1][dot_col1]
+            dot_space0.set_dot(dot_index, dot_space1)
+            dot_space1.set_dot(dot_index, dot_space0)
 
         return spaces
 
@@ -246,6 +310,7 @@ class GameState:
         self.in_game = False
         self.board = None
         self.level = None
+        self.curr_selected_space = None
 
     def start_level(self, level):
         self.in_game = True
@@ -269,7 +334,7 @@ def main():
 
     root.bind("<Button-1>", lambda event: mouse_click(event, view, state))
     root.bind("<B1-Motion>", lambda event: mouse_drag(event, view, state))
-    root.bind("<ButtonRelease-1>", lambda event: mouse_release(event, view, state))
+    root.bind("<ButtonRelease-1>", lambda event: mouse_release(view, state))
     root.bind("<Configure>", lambda event: window_change(view, state))
 
     root.wm_geometry("%sx%s" % (WINDOW_WIDTH, WINDOW_HEIGHT))
