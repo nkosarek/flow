@@ -26,9 +26,12 @@ def mouse_click(event, view, state):
 
     space = view.in_game.selected_space(event, state.board)
     if space is None or (space.dot is None and space.fill is None):
+        state.curr_selected_space = None
         return
-    elif space.dot is not None:
-        if space.fill is None:
+
+    state.curr_selected_space = space
+    if space.dot is not None:
+        if space.fill is None or space.fill.next_space is None:
             Board.clear_pipe(space.dot.other)
         else:
             Board.clear_pipe(space)
@@ -40,7 +43,6 @@ def mouse_click(event, view, state):
         Board.clear_pipe(space)
         space.set_fill(color)
 
-    state.curr_selected_space = space
     view.redraw_in_game(state)
 
 
@@ -51,7 +53,8 @@ def mouse_drag(event, view, state):
 
     new_space = view.in_game.selected_space(event, state.board)
     old_space = state.curr_selected_space
-    if new_space is None or old_space is None or new_space == old_space or\
+    if new_space is None or old_space is None or\
+            new_space == old_space or old_space.fill is None or\
             (new_space.row != old_space.row and
              new_space.col != old_space.col):
         return
@@ -65,10 +68,22 @@ def mouse_drag(event, view, state):
     view.redraw_in_game(state)
 
 
-def mouse_release(view, state):
-    if state.in_game and view.changing_window:
-        view.changing_window = False
-        view.redraw_in_game(state)
+def mouse_release(event, view, state):
+    if state.in_game:
+        if view.changing_window:
+            view.changing_window = False
+            view.redraw_in_game(state)
+            return
+
+        curr_sel = state.curr_selected_space
+        release_space = view.in_game.selected_space(event, state.board)
+        if curr_sel is not None and release_space == curr_sel and\
+                release_space.dot is not None:
+            dot = release_space.dot
+            if dot.other.fill is None:
+                Board.clear_pipe(release_space)
+                state.curr_selected_space = None
+                view.redraw_in_game(state)
 
 
 ### Button Events ###
@@ -343,7 +358,7 @@ def main():
 
     root.bind("<Button-1>", lambda event: mouse_click(event, view, state))
     root.bind("<B1-Motion>", lambda event: mouse_drag(event, view, state))
-    root.bind("<ButtonRelease-1>", lambda event: mouse_release(view, state))
+    root.bind("<ButtonRelease-1>", lambda event: mouse_release(event, view, state))
     root.bind("<Configure>", lambda event: window_change(view, state))
 
     root.wm_geometry("%sx%s" % (WINDOW_WIDTH, WINDOW_HEIGHT))
