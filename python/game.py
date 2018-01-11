@@ -1,3 +1,4 @@
+# TODO: Do not clear crossed pipe until mouse release
 # TODO: No pipe continue after correct dot, pipe autocomplete after dot block
 # TODO: Game completion, perfect game, next/restart/last buttons
 # TODO: back to menu button in level select and game, stats page
@@ -46,17 +47,19 @@ def mouse_click(event, view, state):
     view.redraw_in_game(state)
 
 
-# TODO: only redraw sometimes
 def mouse_drag(event, view, state):
     if not state.in_game:
         return
 
     new_space = view.in_game.selected_space(event, state.board)
     old_space = state.curr_selected_space
-    if new_space is None or old_space is None or\
-            new_space == old_space or old_space.fill is None or\
-            not Board.adjacent_spaces(new_space, old_space) or\
-            not Board.compatible_dot(new_space, old_space):
+
+    not_to_advance = new_space is None or old_space is None or\
+        new_space == old_space or old_space.fill is None or\
+        not Board.adjacent_spaces(new_space, old_space) or\
+        not Board.compatible_dot(new_space, old_space)
+
+    if not_to_advance:
         # TODO: adjacent fail could result in autocomplete instead of early return
         return
 
@@ -84,6 +87,8 @@ def mouse_release(event, view, state):
             if dot.other.fill is None:
                 Board.clear_pipe(release_space)
                 state.curr_selected_space = None
+                view.redraw_in_game(state)
+            elif state.check_level_complete():
                 view.redraw_in_game(state)
 
 
@@ -175,6 +180,8 @@ class InGame(Page):
         self.canvas.delete(tk.ALL)
 
         self._draw_board(self.canvas, state)
+        if state.level_complete:
+            InGame._draw_level_complete(self.canvas, state)
 
         self.canvas.update()
         if not self.visible:
@@ -228,6 +235,15 @@ class InGame(Page):
         if dot is not None:
             canvas.create_oval(x0+2, y0+2, x1-2, y1-2, fill=DOT_COLORS[dot.index])
 
+    @staticmethod
+    def _draw_level_complete(canvas, state):
+        canvas = canvas
+        x = canvas.winfo_width()/2
+        y = canvas.winfo_height()/2
+        font_size = min(x/6, y/6)
+        canvas.create_text(x, y, text="AHHHHH", font=('Helvetica', font_size),
+                           anchor=tk.CENTER)
+
 
 class GameView:
     def __init__(self, root, state, window_width, window_height):
@@ -256,6 +272,7 @@ class GameView:
 
     def redraw_in_game(self, state):
         self.in_game.update_and_show(state)
+
 
 
 ##########################################
@@ -364,12 +381,21 @@ class GameState:
         self.board = None
         self.level = None
         self.curr_selected_space = None
+        self.level_complete = False
 
     def start_level(self, level):
         self.in_game = True
         self.level = level
         (rows, cols, dots) = BOARD_SETUP[level]
         self.board = Board(rows, cols, dots)
+
+    def check_level_complete(self):
+        for row in self.board.spaces:
+            for space in row:
+                if space.fill is None:
+                    return False
+        self.level_complete = True
+        return True
 
 
 ##########################################
