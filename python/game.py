@@ -1,14 +1,12 @@
-# TODO: Do not clear crossed pipe until mouse release
 # TODO: No pipe continue after correct dot, pipe autocomplete after dot block
 # TODO: Game completion, perfect game, next/restart/last buttons
 # TODO: back to menu button in level select and game, stats page
+# TODO: Do not clear crossed pipe until mouse release
 
 # TODO?: Space interface (dot space, bridge space, etc)
 
 # TODO: click and drag away from button doesn't click button
 # TODO: bridges, walls, custom boards, custom board validation
-
-# TODO: BUG: if pipe cuts off different color pipe, it becomes next_space in the cut off one
 
 import Tkinter as tk
 from engine import *
@@ -35,14 +33,12 @@ def mouse_click(event, view, state):
         if space.fill is None or space.fill.next_space is None:
             Board.clear_pipe(space.dot.other)
         else:
-            Board.clear_pipe(space)
+            Board.clear_pipe(space.fill.next_space)
 
-        space.set_fill(space.dot.index)
+        space.set_fill(space.dot.index, None)
 
     elif space.fill is not None:
-        color = space.fill.color
-        Board.clear_pipe(space)
-        space.set_fill(color)
+        Board.clear_pipe(space.fill.next_space)
 
     view.redraw_in_game(state)
 
@@ -66,7 +62,7 @@ def mouse_drag(event, view, state):
     old_space.set_next_space(new_space)
     color = old_space.fill.color
     Board.clear_pipe(new_space)
-    new_space.set_fill(color)
+    new_space.set_fill(color, old_space)
     state.curr_selected_space = new_space
 
     view.redraw_in_game(state)
@@ -274,16 +270,16 @@ class GameView:
         self.in_game.update_and_show(state)
 
 
-
 ##########################################
 # Model
 ##########################################
 
 
 class Fill:
-    def __init__(self, color):
+    def __init__(self, color, last_space):
         self.color = color
         self.next_space = None
+        self.last_space = last_space
 
 
 class Dot:
@@ -302,12 +298,17 @@ class Space:
     def set_dot(self, index, other):
         self.dot = Dot(index, other)
 
-    def set_fill(self, color):
-        self.fill = Fill(color)
+    def set_fill(self, color, last_space):
+        self.fill = Fill(color, last_space)
 
     def set_next_space(self, next_space):
         assert self.fill is not None
         self.fill.next_space = next_space
+
+    def clear_last_next_space(self):
+        if self.fill is None or self.fill.last_space is None:
+            return
+        self.fill.last_space.fill.next_space = None
 
     def clear_fill(self):
         if self.fill is None:
@@ -346,6 +347,8 @@ class Board:
     @staticmethod
     def clear_pipe(start_space):
         curr_space = start_space
+        if curr_space is not None:
+            curr_space.clear_last_next_space()
         while curr_space is not None:
             curr_space = curr_space.clear_fill()
 
