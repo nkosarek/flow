@@ -306,7 +306,8 @@ class Space:
         self.fill.next_space = next_space
 
     def clear_last_next_space(self):
-        if self.fill is None or self.fill.last_space is None:
+        if self.fill is None or self.fill.last_space is None or\
+                self.fill.last_space.fill is None:
             return
         self.fill.last_space.fill.next_space = None
 
