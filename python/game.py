@@ -67,9 +67,10 @@ def mouse_drag(event, view, state):
         not Board.adjacent_spaces(new_space, old_space) or\
         not Board.compatible_dot(new_space, old_space) or\
         Board.illegal_space_after_dot(new_space, old_space)
+    # TODO: [NOTE] illegal_space_after dot check should come after pipe shorten
 
     if not_to_advance:
-        # TODO: adjacent fail could result in autocomplete instead of early return
+        # TODO: [NOTE] adjacent fail could result in autocomplete instead of early return
         return
 
     old_space.set_next_space(new_space)
