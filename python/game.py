@@ -4,12 +4,15 @@
 # TODO: [REFACTOR]
 # TODO: space.has_dot()
 # TODO: space methods to deal with pipe continue instead of in event handler
+# TODO: engine.py isn't an engine right now, just config
 # TODO?: Space interface (dot space, bridge space, etc)
 
 # TODO: [FEATURES]
 # TODO: pipe autocomplete
-# TODO: Game completion, perfect game, next/restart/last buttons
-# TODO: back to menu button in level select and game, stats page
+# TODO: Game completion; perfect game
+# TODO: next/restart/last buttons
+# TODO: back to menu button in level select and game
+# TODO: stats page
 # TODO: Do not clear crossed pipe until mouse release
 
 # TODO: [STRETCH]
