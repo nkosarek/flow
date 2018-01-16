@@ -1,12 +1,21 @@
-# TODO: No pipe continue after correct dot, pipe autocomplete after dot block
+# TODO: [BUGS]
+# TODO: pipe can detach from itself if cursor wraps back on pipe a certain way
+
+# TODO: [REFACTOR]
+# TODO: space.has_dot()
+# TODO: space methods to deal with pipe continue instead of in event handler
+# TODO?: Space interface (dot space, bridge space, etc)
+
+# TODO: [FEATURES]
+# TODO: pipe autocomplete
 # TODO: Game completion, perfect game, next/restart/last buttons
 # TODO: back to menu button in level select and game, stats page
 # TODO: Do not clear crossed pipe until mouse release
 
-# TODO?: Space interface (dot space, bridge space, etc)
-
+# TODO: [STRETCH]
 # TODO: click and drag away from button doesn't click button
 # TODO: bridges, walls, custom boards, custom board validation
+# TODO: multiplayer (race?)
 
 import Tkinter as tk
 from engine import *
@@ -53,7 +62,8 @@ def mouse_drag(event, view, state):
     not_to_advance = new_space is None or old_space is None or\
         new_space == old_space or old_space.fill is None or\
         not Board.adjacent_spaces(new_space, old_space) or\
-        not Board.compatible_dot(new_space, old_space)
+        not Board.compatible_dot(new_space, old_space) or\
+        Board.illegal_space_after_dot(new_space, old_space)
 
     if not_to_advance:
         # TODO: adjacent fail could result in autocomplete instead of early return
@@ -298,6 +308,9 @@ class Space:
     def set_dot(self, index, other):
         self.dot = Dot(index, other)
 
+    def has_dot(self):
+        return self.dot is not None
+
     def set_fill(self, color, last_space):
         self.fill = Fill(color, last_space)
 
@@ -377,6 +390,18 @@ class Board:
             return False
         else:
             return True
+
+    @staticmethod
+    def illegal_space_after_dot(new_space, old_space):
+        if new_space is None or old_space is None or not old_space.has_dot() or\
+                old_space.fill is None or old_space.fill.last_space is None:
+            return False
+
+        # If pipe has reached second dot, it cannot continue past that dot.
+        if old_space.fill.last_space != new_space:
+            return True
+        else:
+            return False
 
 
 class GameState:
