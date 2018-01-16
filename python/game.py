@@ -59,6 +59,19 @@ def mouse_drag(event, view, state):
     if not state.in_game:
         return
 
+    # TODO: [NOTE] needs last pipe space, last space selected, and new space
+    # Cases:
+    # dst == same pipe
+    #   -> cut pipe back down
+    # src == second dot; dst != same pipe
+    #   -> no advance
+    # src == pipe; dst == incompatible dot
+    #   -> no advance
+    # src == pipe; dst == adjacent empty/different color/compatible dot
+    #   -> advance pipe (can be collapsed into below case)
+    # src == pipe; dst == non-adjacent empty/different color/compatible dot
+    #   -> try to autocomplete pipe
+
     new_space = view.in_game.selected_space(event, state.board)
     old_space = state.curr_selected_space
 
