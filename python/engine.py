@@ -18,7 +18,7 @@ DOT_COLORS = [
     "#fff"
 ]
 
-FILL_COLORS = [
+PIPE_COLORS = [
     "#e00",
     "#0e0",
     "#00e",
@@ -28,7 +28,7 @@ FILL_COLORS = [
     "#eee"
 ]
 
-OVERWRITE_FILL_COLORS = [
+OVERWRITE_PIPE_COLORS = [
     "#c00",
     "#0c0",
     "#00c",

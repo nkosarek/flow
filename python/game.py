@@ -1,11 +1,19 @@
+###############################################################################
+#
+# Flow - Web game based on smart phone app "Flow Free"
+#
+# Author: Nicholas Kosarek
+# Python Version 2.7
+#
+###############################################################################
+
 # TODO: [BUGS]
 # TODO: pipe can detach from itself if cursor wraps back on pipe a certain way
 
 # TODO: [REFACTOR]
-# TODO: space.has_dot()
 # TODO: space methods to deal with pipe continue instead of in event handler
 # TODO: engine.py isn't an engine, just config
-# TODO: replace fill with pipe
+# TODO: Rename GameView.in_game and InGame
 # TODO?: Space interface (dot space, bridge space, etc)
 
 # TODO: [FEATURES]
@@ -37,21 +45,21 @@ def mouse_click(event, view, state):
         return
 
     space = view.in_game.selected_space(event, state.board)
-    if space is None or (not space.has_dot() and space.fill is None):
+    if space is None or (not space.has_dot() and not space.has_pipe()):
         state.curr_selected_space = None
         return
 
     state.curr_selected_space = space
     if space.has_dot():
-        if space.fill is None or space.fill.next_space is None:
+        if not space.has_pipe() or space.is_pipe_end():
             Board.clear_pipe(space.get_other_dot_space())
         else:
-            Board.clear_pipe(space.fill.next_space)
+            Board.clear_pipe(space.get_next_pipe_space())
 
-        space.set_fill(space.get_dot_color(), None)
+        space.set_pipe(space.get_dot_color(), None)
 
-    elif space.fill is not None:
-        Board.clear_pipe(space.fill.next_space)
+    elif space.has_pipe():
+        Board.clear_pipe(space.get_next_pipe_space())
 
     view.redraw_in_game(state)
 
@@ -79,7 +87,7 @@ def mouse_drag(event, view, state):
     old_space = state.curr_selected_space
 
     not_to_advance = new_space is None or old_space is None or\
-        new_space == old_space or old_space.fill is None or\
+        new_space == old_space or not old_space.has_pipe() or\
         not Board.adjacent_spaces(new_space, old_space) or\
         not Board.compatible_dot(new_space, old_space) or\
         Board.illegal_space_after_dot(new_space, old_space)
@@ -89,10 +97,10 @@ def mouse_drag(event, view, state):
         # TODO: [NOTE] adjacent fail could result in autocomplete instead of early return
         return
 
-    old_space.set_next_space(new_space)
-    color = old_space.fill.color
+    old_space.set_next_pipe_space(new_space)
+    color = old_space.get_pipe_color()
     Board.clear_pipe(new_space)
-    new_space.set_fill(color, old_space)
+    new_space.set_pipe(color, old_space)
     state.curr_selected_space = new_space
 
     view.redraw_in_game(state)
@@ -110,7 +118,7 @@ def mouse_release(event, view, state):
         if curr_sel is not None and release_space == curr_sel and\
                 release_space.has_dot():
             other = release_space.get_other_dot_space()
-            if other.fill is None:
+            if not other.has_pipe():
                 Board.clear_pipe(release_space)
                 state.curr_selected_space = None
                 view.redraw_in_game(state)
@@ -249,13 +257,12 @@ class InGame(Page):
 
     @staticmethod
     def _draw_space(canvas, space, x0, y0, x1, y1):
-        fill = space.fill
-        if fill is None:
+        if not space.has_pipe():
             canvas.create_rectangle(x0, y0, x1, y1,
                                     fill="black", outline="white")
         else:
             canvas.create_rectangle(x0, y0, x1, y1,
-                                    fill=FILL_COLORS[fill.color], outline="white")
+                                    fill=PIPE_COLORS[space.get_pipe_color()], outline="white")
 
         if space.has_dot():
             color = space.get_dot_color()
@@ -305,7 +312,7 @@ class GameView:
 ##########################################
 
 
-class Fill:
+class Pipe:
     def __init__(self, color, last_space):
         self.color = color
         self.next_space = None
@@ -323,8 +330,9 @@ class Space:
         self.row = row
         self.col = col
         self.dot = None
-        self.fill = None
+        self.pipe = None
 
+    ### DOT METHODS ###
     def set_dot(self, color, other):
         self.dot = Dot(color, other)
 
@@ -339,24 +347,49 @@ class Space:
         assert self.has_dot()
         return self.dot.other
 
-    def set_fill(self, color, last_space):
-        self.fill = Fill(color, last_space)
+    ### PIPE METHODS ###
+    def set_pipe(self, color, last_space):
+        self.pipe = Pipe(color, last_space)
 
-    def set_next_space(self, next_space):
-        assert self.fill is not None
-        self.fill.next_space = next_space
+    def has_pipe(self):
+        return self.pipe is not None
 
-    def clear_last_next_space(self):
-        if self.fill is None or self.fill.last_space is None or\
-                self.fill.last_space.fill is None:
+    def get_pipe_color(self):
+        return self.pipe.color
+
+    def is_pipe_start(self):
+        return self.has_pipe() and self.get_last_pipe_space() is None
+
+    def is_pipe_end(self):
+        return self.has_pipe() and self.get_next_pipe_space() is None
+
+    def get_next_pipe_space(self):
+        assert self.has_pipe()
+        return self.pipe.next_space
+
+    def set_next_pipe_space(self, next_space):
+        assert self.has_pipe()
+        self.pipe.next_space = next_space
+
+    def clear_next_pipe_space(self):
+        assert self.has_pipe()
+        self.pipe.next_space = None
+
+    def get_last_pipe_space(self):
+        assert self.has_pipe()
+        return self.pipe.last_space
+
+    def clear_last_next_pipe_space(self):
+        if not self.has_pipe() or self.is_pipe_start():
             return
-        self.fill.last_space.fill.next_space = None
+        assert self.get_last_pipe_space().has_pipe()
+        self.get_last_pipe_space().clear_next_pipe_space()
 
-    def clear_fill(self):
-        if self.fill is None:
+    def clear_pipe(self):
+        if not self.has_pipe():
             return None
-        next_space = self.fill.next_space
-        self.fill = None
+        next_space = self.get_next_pipe_space()
+        self.pipe = None
         return next_space
 
 
@@ -390,9 +423,9 @@ class Board:
     def clear_pipe(start_space):
         curr_space = start_space
         if curr_space is not None:
-            curr_space.clear_last_next_space()
+            curr_space.clear_last_next_pipe_space()
         while curr_space is not None:
-            curr_space = curr_space.clear_fill()
+            curr_space = curr_space.clear_pipe()
 
     @staticmethod
     def adjacent_spaces(space0, space1):
@@ -411,10 +444,10 @@ class Board:
     def compatible_dot(dot_space, curr_space):
         assert dot_space is not None
         assert curr_space is not None
-        assert curr_space.fill is not None
+        assert curr_space.has_pipe()
 
         if dot_space.has_dot() and\
-                curr_space.fill.color != dot_space.get_dot_color():
+                curr_space.get_pipe_color() != dot_space.get_dot_color():
             return False
         else:
             return True
@@ -422,11 +455,11 @@ class Board:
     @staticmethod
     def illegal_space_after_dot(new_space, old_space):
         if new_space is None or old_space is None or not old_space.has_dot() or\
-                old_space.fill is None or old_space.fill.last_space is None:
+                not old_space.has_pipe() or old_space.is_pipe_start():
             return False
 
         # If pipe has reached second dot, it cannot continue past that dot.
-        if old_space.fill.last_space != new_space:
+        if old_space.get_last_pipe_space() != new_space:
             return True
         else:
             return False
@@ -449,7 +482,7 @@ class GameState:
     def check_level_complete(self):
         for row in self.board.spaces:
             for space in row:
-                if space.fill is None:
+                if not space.has_pipe():
                     return False
         self.level_complete = True
         return True
