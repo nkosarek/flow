@@ -4,7 +4,8 @@
 # TODO: [REFACTOR]
 # TODO: space.has_dot()
 # TODO: space methods to deal with pipe continue instead of in event handler
-# TODO: engine.py isn't an engine right now, just config
+# TODO: engine.py isn't an engine, just config
+# TODO: replace fill with pipe
 # TODO?: Space interface (dot space, bridge space, etc)
 
 # TODO: [FEATURES]
@@ -36,18 +37,18 @@ def mouse_click(event, view, state):
         return
 
     space = view.in_game.selected_space(event, state.board)
-    if space is None or (space.dot is None and space.fill is None):
+    if space is None or (not space.has_dot() and space.fill is None):
         state.curr_selected_space = None
         return
 
     state.curr_selected_space = space
-    if space.dot is not None:
+    if space.has_dot():
         if space.fill is None or space.fill.next_space is None:
-            Board.clear_pipe(space.dot.other)
+            Board.clear_pipe(space.get_other_dot_space())
         else:
             Board.clear_pipe(space.fill.next_space)
 
-        space.set_fill(space.dot.index, None)
+        space.set_fill(space.get_dot_color(), None)
 
     elif space.fill is not None:
         Board.clear_pipe(space.fill.next_space)
@@ -107,9 +108,9 @@ def mouse_release(event, view, state):
         curr_sel = state.curr_selected_space
         release_space = view.in_game.selected_space(event, state.board)
         if curr_sel is not None and release_space == curr_sel and\
-                release_space.dot is not None:
-            dot = release_space.dot
-            if dot.other.fill is None:
+                release_space.has_dot():
+            other = release_space.get_other_dot_space()
+            if other.fill is None:
                 Board.clear_pipe(release_space)
                 state.curr_selected_space = None
                 view.redraw_in_game(state)
@@ -256,9 +257,9 @@ class InGame(Page):
             canvas.create_rectangle(x0, y0, x1, y1,
                                     fill=FILL_COLORS[fill.color], outline="white")
 
-        dot = space.dot
-        if dot is not None:
-            canvas.create_oval(x0+2, y0+2, x1-2, y1-2, fill=DOT_COLORS[dot.index])
+        if space.has_dot():
+            color = space.get_dot_color()
+            canvas.create_oval(x0+2, y0+2, x1-2, y1-2, fill=DOT_COLORS[color])
 
     @staticmethod
     def _draw_level_complete(canvas, state):
@@ -312,8 +313,8 @@ class Fill:
 
 
 class Dot:
-    def __init__(self, index, other):
-        self.index = index
+    def __init__(self, color, other):
+        self.color = color
         self.other = other
 
 
@@ -324,11 +325,19 @@ class Space:
         self.dot = None
         self.fill = None
 
-    def set_dot(self, index, other):
-        self.dot = Dot(index, other)
+    def set_dot(self, color, other):
+        self.dot = Dot(color, other)
 
     def has_dot(self):
         return self.dot is not None
+
+    def get_dot_color(self):
+        assert self.has_dot()
+        return self.dot.color
+
+    def get_other_dot_space(self):
+        assert self.has_dot()
+        return self.dot.other
 
     def set_fill(self, color, last_space):
         self.fill = Fill(color, last_space)
@@ -368,12 +377,12 @@ class Board:
             spaces.append(row)
 
         # Place appropriate dots in board spaces
-        for dot_index in xrange(len(dots)):
-            (dot_row0, dot_col0, dot_row1, dot_col1) = dots[dot_index]
+        for color_index in xrange(len(dots)):
+            (dot_row0, dot_col0, dot_row1, dot_col1) = dots[color_index]
             dot_space0 = spaces[dot_row0][dot_col0]
             dot_space1 = spaces[dot_row1][dot_col1]
-            dot_space0.set_dot(dot_index, dot_space1)
-            dot_space1.set_dot(dot_index, dot_space0)
+            dot_space0.set_dot(color_index, dot_space1)
+            dot_space1.set_dot(color_index, dot_space0)
 
         return spaces
 
@@ -404,8 +413,8 @@ class Board:
         assert curr_space is not None
         assert curr_space.fill is not None
 
-        if dot_space.dot is not None and\
-                curr_space.fill.color != dot_space.dot.index:
+        if dot_space.has_dot() and\
+                curr_space.fill.color != dot_space.get_dot_color():
             return False
         else:
             return True
