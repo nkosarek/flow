@@ -47,8 +47,10 @@ def mouse_click(event, view, state):
     space = view.in_game.selected_space(event, state.board)
     if space is None or (not space.has_dot() and not space.has_pipe()):
         state.curr_selected_space = None
+        state.curr_pipe_space = None
         return
 
+    state.curr_pipe_space = space
     state.curr_selected_space = space
     if space.has_dot():
         if not space.has_pipe() or space.is_pipe_end():
@@ -77,31 +79,64 @@ def mouse_drag(event, view, state):
     # src == second dot; dst != same pipe
     #   -> no advance
     # src == pipe; dst == incompatible dot
-    #   -> no advance
+    #   -> autocomplete as far as possible
     # src == pipe; dst == adjacent empty/different color/compatible dot
     #   -> advance pipe (can be collapsed into below case)
     # src == pipe; dst == non-adjacent empty/different color/compatible dot
     #   -> autocomplete pipe as far as possible (look for diagonal dst)
 
-    new_space = view.in_game.selected_space(event, state.board)
-    old_space = state.curr_selected_space
+    dst_space = view.in_game.selected_space(event, state.board)
+    last_selected_space = state.curr_selected_space
+    src_pipe_space = state.curr_pipe_space
 
-    not_to_advance = new_space is None or old_space is None or\
-        new_space == old_space or not old_space.has_pipe() or\
-        not Board.adjacent_spaces(new_space, old_space) or\
-        not Board.compatible_dot(new_space, old_space) or\
-        Board.illegal_space_after_dot(new_space, old_space)
-    # TODO: [NOTE] illegal_space_after dot check should come after pipe shorten
-
-    if not_to_advance:
-        # TODO: [NOTE] adjacent fail could result in autocomplete instead of early return
+    should_redraw = True
+    # Not currently advancing a pipe
+    if src_pipe_space is None:
+        state.curr_selected_space = None
         return
+    # Mouse hasn't moved to a different space
+    elif dst_space == last_selected_space:
+        return
+    # Mouse is outside of board
+    elif dst_space is None:
+        state.curr_selected_space = None
+        state.curr_pipe_space = None
+        return
+    # Mouse has returned to a space in the currently advancing pipe
+    elif dst_space.get_pipe_color() == src_pipe_space.get_pipe_color():
+        assert dst_space.has_pipe()
+        if not dst_space.is_pipe_end():
+            Board.clear_pipe(dst_space.get_next_pipe_space())
+        state.curr_pipe_space = dst_space
+    # Mouse has gone past the second dot space after completing a pipe
+    elif src_pipe_space.has_dot() and not src_pipe_space.is_pipe_start():
+        return
+    # Attempt to connect the pipe to the destination space
+    else:
+        should_redraw, last_pipe_space =\
+            state.board.autocomplete_pipe(src_pipe_space, dst_space)
+        state.curr_pipe_space = last_pipe_space
 
-    old_space.set_next_pipe_space(new_space)
-    color = old_space.get_pipe_color()
-    Board.clear_pipe(new_space)
-    new_space.set_pipe(color, old_space)
-    state.curr_selected_space = new_space
+    state.curr_selected_space = dst_space
+    if should_redraw:
+        view.redraw_in_game(state)
+
+    #not_to_advance = new_space is None or old_space is None or\
+    #    new_space == old_space or not old_space.has_pipe() or\
+    #    not Board.adjacent_spaces(new_space, old_space) or\
+    #    not Board.compatible_dot(new_space, old_space) or\
+    #    Board.illegal_space_after_dot(new_space, old_space)
+    ## TODO: [NOTE] illegal_space_after dot check should come after pipe shorten
+
+    #if not_to_advance:
+    #    # TODO: [NOTE] adjacent fail could result in autocomplete instead of early return
+    #    return
+
+    #old_space.set_next_pipe_space(new_space)
+    #color = old_space.get_pipe_color()
+    #Board.clear_pipe(new_space)
+    #new_space.set_pipe(color, old_space)
+    #state.curr_selected_space = new_space
 
     view.redraw_in_game(state)
 
@@ -113,14 +148,15 @@ def mouse_release(event, view, state):
             view.redraw_in_game(state)
             return
 
-        curr_sel = state.curr_selected_space
+        curr_pipe_space = state.curr_pipe_space
         release_space = view.in_game.selected_space(event, state.board)
-        if curr_sel is not None and release_space == curr_sel and\
-                release_space.has_dot():
+        if curr_pipe_space is not None and\
+                release_space == curr_pipe_space and release_space.has_dot():
             other = release_space.get_other_dot_space()
             if not other.has_pipe():
                 Board.clear_pipe(release_space)
                 state.curr_selected_space = None
+                state.curr_pipe_space = None
                 view.redraw_in_game(state)
             elif state.check_level_complete():
                 view.redraw_in_game(state)
@@ -355,10 +391,17 @@ class Space:
         return self.pipe is not None
 
     def get_pipe_color(self):
-        return self.pipe.color
+        if self.has_pipe():
+            return self.pipe.color
+        else:
+            return None
 
     def is_pipe_start(self):
-        return self.has_pipe() and self.get_last_pipe_space() is None
+        if self.has_pipe() and self.get_last_pipe_space() is None:
+            assert self.has_dot()
+            return True
+        else:
+            return False
 
     def is_pipe_end(self):
         return self.has_pipe() and self.get_next_pipe_space() is None
@@ -398,6 +441,21 @@ class Board:
         self.rows = rows
         self.cols = cols
         self.spaces = Board._create_spaces(rows, cols, dots)
+
+    def autocomplete_pipe(self, src_space, dst_space):
+        assert src_space != dst_space
+        assert not src_space.has_dot() or src_space.is_pipe_start()
+        if Board.adjacent_spaces(src_space, dst_space):
+            if not dst_space.has_dot():
+                Board.clear_pipe(dst_space)
+                src_space.set_next_pipe_space(dst_space)
+                dst_space.set_pipe(src_space.get_pipe_color(), src_space)
+                return True, dst_space
+            elif Board.compatible_dot(dst_space, src_space):
+                src_space.set_next_pipe_space(dst_space)
+                dst_space.set_pipe(src_space.get_pipe_color(), src_space)
+                return True, dst_space
+        return False, src_space
 
     @staticmethod
     def _create_spaces(rows, cols, dots):
@@ -471,6 +529,7 @@ class GameState:
         self.board = None
         self.level = None
         self.curr_selected_space = None
+        self.curr_pipe_space = None
         self.level_complete = False
 
     def start_level(self, level):
