@@ -7,10 +7,9 @@
 #
 ###############################################################################
 
-# TODO: [BUGS]
-# TODO: pipe can detach from itself if cursor wraps back on pipe a certain way
-
 # TODO: [REFACTOR]
+# TODO: split this file for god's sake
+# TODO: move state logic out of controller functions
 # TODO: space methods to deal with pipe continue instead of in event handler
 # TODO: engine.py isn't an engine, just config
 # TODO: Rename GameView.in_game and InGame
@@ -70,75 +69,10 @@ def mouse_drag(event, view, state):
     if not state.in_game:
         return
 
-    # TODO: [NOTE] needs last pipe space, last space selected, and new space
-    # Cases:
-    # dst == outside board
-    #   -> stop working on currently selected pipe
-    # dst == same pipe
-    #   -> cut pipe back down
-    # src == second dot; dst != same pipe
-    #   -> no advance
-    # src == pipe; dst == incompatible dot
-    #   -> autocomplete as far as possible
-    # src == pipe; dst == adjacent empty/different color/compatible dot
-    #   -> advance pipe (can be collapsed into below case)
-    # src == pipe; dst == non-adjacent empty/different color/compatible dot
-    #   -> autocomplete pipe as far as possible (look for diagonal dst)
-
     dst_space = view.in_game.selected_space(event, state.board)
-    last_selected_space = state.curr_selected_space
-    src_pipe_space = state.curr_pipe_space
 
-    should_redraw = True
-    # Not currently advancing a pipe
-    if src_pipe_space is None:
-        state.curr_selected_space = None
-        return
-    # Mouse hasn't moved to a different space
-    elif dst_space == last_selected_space:
-        return
-    # Mouse is outside of board
-    elif dst_space is None:
-        state.curr_selected_space = None
-        state.curr_pipe_space = None
-        return
-    # Mouse has returned to a space in the currently advancing pipe
-    elif dst_space.get_pipe_color() == src_pipe_space.get_pipe_color():
-        assert dst_space.has_pipe()
-        if not dst_space.is_pipe_end():
-            Board.clear_pipe(dst_space.get_next_pipe_space())
-        state.curr_pipe_space = dst_space
-    # Mouse has gone past the second dot space after completing a pipe
-    elif src_pipe_space.has_dot() and not src_pipe_space.is_pipe_start():
-        return
-    # Attempt to connect the pipe to the destination space
-    else:
-        should_redraw, last_pipe_space =\
-            state.board.autocomplete_pipe(src_pipe_space, dst_space)
-        state.curr_pipe_space = last_pipe_space
-
-    state.curr_selected_space = dst_space
-    if should_redraw:
+    if state.attempt_pipe_advance(dst_space):
         view.redraw_in_game(state)
-
-    #not_to_advance = new_space is None or old_space is None or\
-    #    new_space == old_space or not old_space.has_pipe() or\
-    #    not Board.adjacent_spaces(new_space, old_space) or\
-    #    not Board.compatible_dot(new_space, old_space) or\
-    #    Board.illegal_space_after_dot(new_space, old_space)
-    ## TODO: [NOTE] illegal_space_after dot check should come after pipe shorten
-
-    #if not_to_advance:
-    #    # TODO: [NOTE] adjacent fail could result in autocomplete instead of early return
-    #    return
-
-    #old_space.set_next_pipe_space(new_space)
-    #color = old_space.get_pipe_color()
-    #Board.clear_pipe(new_space)
-    #new_space.set_pipe(color, old_space)
-    #state.curr_selected_space = new_space
-
-    view.redraw_in_game(state)
 
 
 def mouse_release(event, view, state):
@@ -537,6 +471,47 @@ class GameState:
         self.level = level
         (rows, cols, dots) = BOARD_SETUP[level]
         self.board = Board(rows, cols, dots)
+
+    def attempt_pipe_advance(self, dst_space):
+        last_selected_space = self.curr_selected_space
+        src_pipe_space = self.curr_pipe_space
+
+        pipe_modified = False
+        # Not currently advancing a pipe
+        if src_pipe_space is None:
+            self.curr_selected_space = None
+
+        # Mouse hasn't moved to a different space
+        elif dst_space == last_selected_space:
+            pass
+
+        # Mouse is outside of board
+        elif dst_space is None:
+            self.curr_selected_space = None
+            self.curr_pipe_space = None
+
+        # Mouse has returned to a space in the currently advancing pipe
+        elif dst_space.get_pipe_color() == src_pipe_space.get_pipe_color():
+            assert dst_space.has_pipe()
+            if not dst_space.is_pipe_end():
+                Board.clear_pipe(dst_space.get_next_pipe_space())
+            self.curr_pipe_space = dst_space
+            self.curr_selected_space = dst_space
+            pipe_modified = True
+
+        # Mouse has gone past the second dot space after completing a pipe
+        elif src_pipe_space.has_dot() and not src_pipe_space.is_pipe_start():
+            pass
+
+        # Attempt to connect the pipe to the destination space
+        else:
+            should_redraw, last_pipe_space =\
+                self.board.autocomplete_pipe(src_pipe_space, dst_space)
+            self.curr_pipe_space = last_pipe_space
+            self.curr_selected_space = dst_space
+            pipe_modified = True
+
+        return pipe_modified
 
     def check_level_complete(self):
         for row in self.board.spaces:
