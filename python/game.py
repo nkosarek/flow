@@ -12,17 +12,21 @@
 # TODO?: Space interface (dot space, bridge space, etc)
 
 # TODO: [FEATURES]
-# TODO: pipe autocomplete
-# TODO: Game completion; perfect game
 # TODO: next/restart/last buttons
-# TODO: back to menu button in level select and game
+# TODO: Game completion; perfect game
+# TODO: pipe autocomplete
+# TODO: back to level select button in level
 # TODO: stats page
 # TODO: Do not clear crossed pipe until mouse release
 
 # TODO: [STRETCH]
-# TODO: click and drag away from button doesn't click button
-# TODO: bridges, walls, custom boards, custom board validation
+# TODO: custom boards
+# TODO: bridges
+# TODO: walls
 # TODO: multiplayer (race?)
+# TODO: queue board updates from event interrupts instead of always redrawing
+# TODO?: custom board validation
+# TODO?: board solver
 
 import Tkinter as tk
 
