@@ -22,7 +22,7 @@ class GameState:
         self.in_game = False
         self.curr_selected_space = None
         self.curr_pipe_space = None
-        self.level_complete = None
+        self.level_complete = False
 
     def attempt_pipe_advance(self, dst_space):
         last_selected_space = self.curr_selected_space
