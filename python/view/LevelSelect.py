@@ -11,6 +11,6 @@ class LevelSelect(Page):
         label.pack()
 
         for level in xrange(NUM_LEVELS):
-            button = tk.Button(self, text="%s" % level,
+            button = tk.Button(self, text="%s" % (level+1),
                                command=lambda lvl=level: level_select_level(view, state, lvl))
             button.pack()

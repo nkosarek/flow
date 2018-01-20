@@ -12,7 +12,7 @@ class GameView:
 
         self.menu = Menu(self, root)
         self.level_select = LevelSelect(self, state, root)
-        self.level = Level(root)
+        self.level = Level(self, state, root)
 
         self.menu.place(in_=root, x=0, y=0, relwidth=1, relheight=1)
         self.level_select.place(in_=root, x=0, y=0, relwidth=1, relheight=1)

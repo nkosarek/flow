@@ -12,10 +12,17 @@ class GameState:
         self.level_complete = False
 
     def start_level(self, level):
-        self.in_game = True
+        self._clear_level()
         self.level = level
         (rows, cols, dots) = BOARD_SETUP[level]
         self.board = Board(rows, cols, dots)
+        self.in_game = True
+
+    def _clear_level(self):
+        self.in_game = False
+        self.curr_selected_space = None
+        self.curr_pipe_space = None
+        self.level_complete = None
 
     def attempt_pipe_advance(self, dst_space):
         last_selected_space = self.curr_selected_space

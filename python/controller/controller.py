@@ -1,4 +1,5 @@
 from state.Board import Board
+from config import NUM_LEVELS
 
 
 ################
@@ -77,6 +78,30 @@ def level_select_back_to_menu(view):
 def level_select_level(view, state, level):
     state.start_level(level)
     view.redraw_level(state)
+
+
+def level_back_to_level_select(view, state):
+    state.in_game = False
+    view.show_level_select()
+
+
+def last_level(view, state):
+    level = state.level
+    if level > 0:
+        state.start_level(level-1)
+        view.redraw_level(state)
+
+
+def reset_level(view, state):
+    state.start_level(state.level)
+    view.redraw_level(state)
+
+
+def next_level(view, state):
+    level = state.level
+    if level < NUM_LEVELS-1:
+        state.start_level(level+1)
+        view.redraw_level(state)
 
 
 #################

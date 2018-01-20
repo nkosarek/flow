@@ -1,16 +1,32 @@
 from Page import *
 from config import PIPE_COLORS, OVERWRITE_PIPE_COLORS, DOT_COLORS
+from controller.controller import level_back_to_level_select, last_level, reset_level, next_level
 
 
 class Level(Page):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, view, state, *args, **kwargs):
         Page.__init__(self, *args, **kwargs)
 
         self.label = tk.Label(self)
         self.label.pack()
 
+        self.back = tk.Button(self, text="<- Back",
+                              command=lambda: level_back_to_level_select(view, state))
+        self.back.pack()
+
         self.canvas = tk.Canvas(self, bg="#888")
         self.canvas.pack(fill="both", expand=True)
+
+        self.last_level = tk.Button(self, text="<",
+                                    command=lambda: last_level(view, state))
+        self.reset = tk.Button(self, text="RESET",
+                               command=lambda: reset_level(view, state))
+        self.next_level = tk.Button(self, text=">",
+                                    command=lambda: next_level(view, state))
+        self.last_level.pack(side="left")
+        self.next_level.pack(side="right")
+        self.reset.pack()
+
         self.visible = False
 
         self.board_x0 = 0
@@ -26,7 +42,7 @@ class Level(Page):
             return board.spaces[row][col]
 
     def update_and_show(self, state):
-        self.label.config(text="Level %d" % state.level)
+        self.label.config(text="Level %d" % (state.level+1))
         self.canvas.delete(tk.ALL)
 
         self._draw_board(self.canvas, state)

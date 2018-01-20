@@ -9,13 +9,12 @@
 
 # TODO: [REFACTOR]
 # TODO: move state logic out of controller functions
+# TODO: update display on timer instead of in event handlers
 # TODO?: Space interface (dot space, bridge space, etc)
 
 # TODO: [FEATURES]
-# TODO: next/restart/last buttons
 # TODO: Game completion; perfect game
 # TODO: pipe autocomplete
-# TODO: back to level select button in level
 # TODO: stats page
 # TODO: Do not clear crossed pipe until mouse release
 
@@ -24,9 +23,8 @@
 # TODO: bridges
 # TODO: walls
 # TODO: multiplayer (race?)
-# TODO: queue board updates from event interrupts instead of always redrawing
-# TODO?: custom board validation
 # TODO?: board solver
+# TODO?: custom board validation
 
 import Tkinter as tk
 
