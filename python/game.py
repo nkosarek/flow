@@ -9,8 +9,9 @@
 
 # TODO: [REFACTOR]
 # TODO: move state logic out of controller functions
+# TODO: move all 'can advance' logic into spaces for attempt_pipe_advance
 # TODO: update display on timer instead of in event handlers
-# TODO?: Space interface (dot space, bridge space, etc)
+# TODO: Space interface (dot space, bridge space, etc)
 
 # TODO: [FEATURES]
 # TODO: Game completion; perfect game
