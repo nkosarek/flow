@@ -9,6 +9,7 @@ class GameState:
         self.level = None
         self.curr_selected_space = None
         self.curr_pipe_space = None
+        self.building_pipe = False
         self.level_complete = False
 
     def start_level(self, level):
@@ -34,6 +35,7 @@ class GameState:
 
         self.curr_pipe_space = space
         self.curr_selected_space = space
+        self.building_pipe = True
         # Is dot space
         if space.has_dot():
             # Is the dot space opposite the pipe start dot space
@@ -86,7 +88,7 @@ class GameState:
 
         # Attempt to connect the pipe to the destination space
         else:
-            should_redraw, last_pipe_space =\
+            should_redraw, last_pipe_space = \
                 self.board.autocomplete_pipe(src_pipe_space, dst_space)
             self.curr_pipe_space = last_pipe_space
             self.curr_selected_space = dst_space
@@ -95,17 +97,25 @@ class GameState:
         return pipe_modified
 
     def unselect_space(self, release_space):
-        if self.curr_pipe_space is not None and \
-                release_space == self.curr_pipe_space and release_space.has_dot():
-            other = release_space.get_other_dot_space()
-            if not other.has_pipe():
+        board_modified = False
+
+        # Pipe was being built during this mouse select sequence
+        if self.building_pipe:
+            # Mouse released on dot at beginning of current pipe
+            if release_space is not None and \
+                    release_space == self.curr_pipe_space and \
+                    release_space.is_pipe_start():
                 Board.clear_pipe(release_space)
                 self.curr_selected_space = None
                 self.curr_pipe_space = None
-                return True
+                board_modified = True
+
             elif self._check_level_complete():
-                return True
-        return False
+                board_modified = True
+
+            self.building_pipe = False
+
+        return board_modified
 
     def _check_level_complete(self):
         for row in self.board.spaces:

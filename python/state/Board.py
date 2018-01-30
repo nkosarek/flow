@@ -69,7 +69,7 @@ class Board:
         assert curr_space is not None
         assert curr_space.has_pipe()
 
-        if dot_space.has_dot() and\
+        if dot_space.has_dot() and \
                 curr_space.get_pipe_color() != dot_space.get_dot_color():
             return False
         else:
@@ -77,7 +77,7 @@ class Board:
 
     @staticmethod
     def illegal_space_after_dot(new_space, old_space):
-        if new_space is None or old_space is None or not old_space.has_dot() or\
+        if new_space is None or old_space is None or not old_space.has_dot() or \
                 not old_space.has_pipe() or old_space.is_pipe_start():
             return False
 
