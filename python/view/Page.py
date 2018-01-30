@@ -1,9 +1,9 @@
-import Tkinter as tk
+import Tkinter as Tk
 
 
-class Page(tk.Frame):
+class Page(Tk.Frame):
     def __init__(self, *args, **kwargs):
-        tk.Frame.__init__(self, *args, **kwargs)
+        Tk.Frame.__init__(self, *args, **kwargs)
 
     def show(self):
         self.lift()

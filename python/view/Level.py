@@ -7,21 +7,21 @@ class Level(Page):
     def __init__(self, view, state, *args, **kwargs):
         Page.__init__(self, *args, **kwargs)
 
-        self.label = tk.Label(self)
+        self.label = Tk.Label(self)
         self.label.pack()
 
-        self.back = tk.Button(self, text="<- Back",
+        self.back = Tk.Button(self, text="<- Back",
                               command=lambda: level_back_to_level_select(view, state))
         self.back.pack()
 
-        self.canvas = tk.Canvas(self, bg="#888")
+        self.canvas = Tk.Canvas(self, bg="#888")
         self.canvas.pack(fill="both", expand=True)
 
-        self.last_level = tk.Button(self, text="<",
+        self.last_level = Tk.Button(self, text="<",
                                     command=lambda: last_level(view, state))
-        self.reset = tk.Button(self, text="RESET",
+        self.reset = Tk.Button(self, text="RESET",
                                command=lambda: reset_level(view, state))
-        self.next_level = tk.Button(self, text=">",
+        self.next_level = Tk.Button(self, text=">",
                                     command=lambda: next_level(view, state))
         self.last_level.pack(side="left")
         self.next_level.pack(side="right")
@@ -43,7 +43,7 @@ class Level(Page):
 
     def update_and_show(self, state):
         self.label.config(text="Level %d" % (state.level+1))
-        self.canvas.delete(tk.ALL)
+        self.canvas.delete(Tk.ALL)
 
         self._draw_board(self.canvas, state)
         if state.level_complete:
@@ -107,4 +107,4 @@ class Level(Page):
         y = canvas.winfo_height()/2
         font_size = min(x/6, y/6)
         canvas.create_text(x, y, text="AHHHHH", font=('Helvetica', font_size),
-                           anchor=tk.CENTER)
+                           anchor=Tk.CENTER)

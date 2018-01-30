@@ -27,7 +27,7 @@
 # TODO?: board solver
 # TODO?: custom board validation
 
-import Tkinter as tk
+import Tkinter as Tk
 
 from config import *
 from controller.controller import *
@@ -37,7 +37,7 @@ from view.GameView import GameView
 
 def main():
 
-    root = tk.Tk()
+    root = Tk.Tk()
 
     state = GameState()
 
