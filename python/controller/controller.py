@@ -1,4 +1,3 @@
-from state.Board import Board
 from config import NUM_LEVELS
 
 
@@ -27,24 +26,18 @@ def mouse_drag(event, view, state):
 
 
 def mouse_release(event, view, state):
-    if state.in_game:
-        if view.changing_window:
-            view.changing_window = False
-            view.redraw_level(state)
-            return
+    if not state.in_game:
+        return
 
-        curr_pipe_space = state.curr_pipe_space
-        release_space = view.level.selected_space(event, state.board)
-        if curr_pipe_space is not None and\
-                release_space == curr_pipe_space and release_space.has_dot():
-            other = release_space.get_other_dot_space()
-            if not other.has_pipe():
-                Board.clear_pipe(release_space)
-                state.curr_selected_space = None
-                state.curr_pipe_space = None
-                view.redraw_level(state)
-            elif state.check_level_complete():
-                view.redraw_level(state)
+    if view.changing_window:
+        view.changing_window = False
+        view.redraw_level(state)
+        return
+
+    release_space = view.level.selected_space(event, state.board)
+
+    if state.unselect_space(release_space):
+        view.redraw_level(state)
 
 
 #################

@@ -7,8 +7,10 @@
 #
 ###############################################################################
 
+# TODO: [BUGS]
+# TODO: Doesn't check game completion if mouse dragged past last dot
+
 # TODO: [REFACTOR]
-# TODO: move state logic out of controller functions
 # TODO: move all 'can advance' logic into spaces for attempt_pipe_advance
 # TODO: update display on timer instead of in event handlers
 # TODO: Space interface (dot space, bridge space, etc)

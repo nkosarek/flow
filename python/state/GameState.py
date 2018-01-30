@@ -94,7 +94,20 @@ class GameState:
 
         return pipe_modified
 
-    def check_level_complete(self):
+    def unselect_space(self, release_space):
+        if self.curr_pipe_space is not None and \
+                release_space == self.curr_pipe_space and release_space.has_dot():
+            other = release_space.get_other_dot_space()
+            if not other.has_pipe():
+                Board.clear_pipe(release_space)
+                self.curr_selected_space = None
+                self.curr_pipe_space = None
+                return True
+            elif self._check_level_complete():
+                return True
+        return False
+
+    def _check_level_complete(self):
         for row in self.board.spaces:
             for space in row:
                 if not space.has_pipe():
