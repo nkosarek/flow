@@ -24,6 +24,35 @@ class GameState:
         self.curr_pipe_space = None
         self.level_complete = False
 
+    def new_selected_space(self, space):
+        # No space selected, or has no pipe to advance/create
+        if space is None or (not space.has_dot() and not space.has_pipe()):
+            self.curr_selected_space = None
+            self.curr_pipe_space = None
+            # Board not updated
+            return False
+
+        self.curr_pipe_space = space
+        self.curr_selected_space = space
+        # Is dot space
+        if space.has_dot():
+            # Is the dot space opposite the pipe start dot space
+            if not space.has_pipe() or space.is_pipe_end():
+                Board.clear_pipe(space.get_other_dot_space())
+            # Is the dot space with the pipe start
+            else:
+                Board.clear_pipe(space.get_next_pipe_space())
+
+            # Start the pipe from the current dot space
+            space.set_pipe(space.get_dot_color(), None)
+
+        # Is non-dot space but has pipe
+        elif space.has_pipe():
+            Board.clear_pipe(space.get_next_pipe_space())
+
+        # Board updated
+        return True
+
     def attempt_pipe_advance(self, dst_space):
         last_selected_space = self.curr_selected_space
         src_pipe_space = self.curr_pipe_space

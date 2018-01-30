@@ -11,25 +11,9 @@ def mouse_click(event, view, state):
         return
 
     space = view.level.selected_space(event, state.board)
-    if space is None or (not space.has_dot() and not space.has_pipe()):
-        state.curr_selected_space = None
-        state.curr_pipe_space = None
-        return
 
-    state.curr_pipe_space = space
-    state.curr_selected_space = space
-    if space.has_dot():
-        if not space.has_pipe() or space.is_pipe_end():
-            Board.clear_pipe(space.get_other_dot_space())
-        else:
-            Board.clear_pipe(space.get_next_pipe_space())
-
-        space.set_pipe(space.get_dot_color(), None)
-
-    elif space.has_pipe():
-        Board.clear_pipe(space.get_next_pipe_space())
-
-    view.redraw_level(state)
+    if state.new_selected_space(space):
+        view.redraw_level(state)
 
 
 def mouse_drag(event, view, state):
