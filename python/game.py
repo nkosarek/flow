@@ -16,6 +16,7 @@
 # TODO: [FEATURES]
 # TODO: Game completion; perfect game
 # TODO: pipe autocomplete
+# TODO: pipe color doesn't completely fill space
 # TODO: stats page
 # TODO: Do not clear crossed pipe until mouse release
 
