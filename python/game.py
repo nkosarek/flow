@@ -1,6 +1,6 @@
 ###############################################################################
 #
-# Flow - Web game based on smart phone app "Flow Free"
+# Flow - Local Tkinter game based on smart phone app "Flow Free"
 #
 # Author: Nicholas Kosarek
 # Python Version 2.7
@@ -11,14 +11,15 @@
 # TODO: move all 'can advance' logic into spaces for attempt_pipe_advance
 # TODO: update display on timer instead of in event handlers
 # TODO: Space interface (dot space, bridge space, etc)
-# TODO: Line character limit
+# TODO: line character limit
+# TODO: restart level - don't completely clear board?
 
 # TODO: [FEATURES]
-# TODO: Game completion; perfect game
+# TODO: pipes completed counter
 # TODO: pipe autocomplete
 # TODO: pipe color doesn't completely fill space
 # TODO: stats page
-# TODO: Do not clear crossed pipe until mouse release
+# TODO: do not clear crossed pipe until mouse release
 
 # TODO: [STRETCH]
 # TODO: custom boards
@@ -36,7 +37,7 @@ from state.GameState import GameState
 from view.GameView import GameView
 
 
-def main():
+if __name__ == "__main__":
 
     root = Tk.Tk()
 
@@ -51,5 +52,3 @@ def main():
 
     root.wm_geometry("%sx%s" % (WINDOW_WIDTH, WINDOW_HEIGHT))
     root.mainloop()
-
-main()

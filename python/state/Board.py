@@ -5,6 +5,7 @@ class Board:
     def __init__(self, rows, cols, dots):
         self.rows = rows
         self.cols = cols
+        self.num_dots = len(dots)
         self.spaces = Board._create_spaces(rows, cols, dots)
 
     def autocomplete_pipe(self, src_space, dst_space):

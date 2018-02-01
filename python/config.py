@@ -1,10 +1,9 @@
+# Default window dimensions
+
 WINDOW_WIDTH = 400
 WINDOW_HEIGHT = 400
 
-# Screens
-MENU = 0
-LEVEL_SELECT = 1
-IN_GAME = 2
+# Dot/Pipe Color Constants
 
 DOT_COLORS = [
     "#f00",
@@ -36,6 +35,8 @@ OVERWRITE_PIPE_COLORS = [
     "#ccc"
 ]
 
+# Board sizes and dot locations for each level
+
 BOARD_SETUP = [
     (5, 5, [(0,0,3,1), (0,4,4,3), (1,2,1,4), (3,3,4,0)]),
     (6, 6, [(0,0,1,5), (1,4,4,4), (4,1,5,5), (4,3,5,4)]),
@@ -45,3 +46,9 @@ BOARD_SETUP = [
 ]
 
 NUM_LEVELS = len(BOARD_SETUP)
+
+# Level complete constants
+
+LEVEL_INCOMPLETE = 0
+LEVEL_COMPLETE = 1
+LEVEL_PERFECT = 2
