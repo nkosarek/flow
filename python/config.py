@@ -3,6 +3,12 @@
 WINDOW_WIDTH = 400
 WINDOW_HEIGHT = 400
 
+# Page constants
+
+MENU = 0
+LEVEL_SELECT = 1
+LEVEL = 2
+
 # Dot/Pipe Color Constants
 
 DOT_COLORS = [
@@ -52,3 +58,7 @@ NUM_LEVELS = len(BOARD_SETUP)
 LEVEL_INCOMPLETE = 0
 LEVEL_COMPLETE = 1
 LEVEL_PERFECT = 2
+
+# Delay constant for refresh_view
+
+REFRESH_DELAY = 40  # ms

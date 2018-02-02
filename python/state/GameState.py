@@ -1,5 +1,6 @@
 from Board import Board
-from config import BOARD_SETUP, LEVEL_INCOMPLETE, LEVEL_COMPLETE, LEVEL_PERFECT
+from config import BOARD_SETUP, MENU, LEVEL_SELECT, LEVEL, \
+    LEVEL_INCOMPLETE, LEVEL_COMPLETE, LEVEL_PERFECT
 
 
 class GameState:
@@ -13,12 +14,15 @@ class GameState:
         self.last_pipe_advanced = None
         self.move_count = 0
         self.level_complete = LEVEL_INCOMPLETE
+        self.page = MENU
+        self.modified = True
 
     def start_level(self, level):
         self._clear_in_level_fields()
         self.level = level
         (rows, cols, dots) = BOARD_SETUP[level]
         self.board = Board(rows, cols, dots)
+        self.page = LEVEL
         self.in_game = True
 
     def restart_level(self):

@@ -48,4 +48,6 @@ if __name__ == "__main__":
     root.bind("<Configure>", lambda event: window_change(view, state))
 
     root.wm_geometry("%sx%s" % (WINDOW_WIDTH, WINDOW_HEIGHT))
+
+    view.refresh_view(state)
     root.mainloop()

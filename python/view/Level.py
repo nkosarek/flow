@@ -4,7 +4,7 @@ from controller.controller import level_back_to_level_select, last_level, reset_
 
 
 class Level(Page):
-    def __init__(self, view, state, *args, **kwargs):
+    def __init__(self, state, *args, **kwargs):
         Page.__init__(self, *args, **kwargs)
 
         self.visible = False
@@ -21,7 +21,7 @@ class Level(Page):
         top_display.pack()
 
         back_btn = Tk.Button(self, text="<- Back",
-                             command=lambda: level_back_to_level_select(view, state))
+                             command=lambda: level_back_to_level_select(state))
         back_btn.pack(in_=top_display, side="left")
 
         self.move_count = Tk.Label(self)
@@ -36,11 +36,11 @@ class Level(Page):
         bottom_display.pack()
 
         last_level_btn = Tk.Button(self, text="<",
-                                   command=lambda: last_level(view, state))
+                                   command=lambda: last_level(state))
         reset_btn = Tk.Button(self, text="RESET",
-                              command=lambda: reset_level(view, state))
+                              command=lambda: reset_level(state))
         next_level_btn = Tk.Button(self, text=">",
-                                   command=lambda: next_level(view, state))
+                                   command=lambda: next_level(state))
         last_level_btn.pack(in_=bottom_display, side="left")
         reset_btn.pack(in_=bottom_display, side="left")
         next_level_btn.pack(in_=bottom_display, side="left")
@@ -55,7 +55,7 @@ class Level(Page):
 
     def update_and_show(self, state):
         self.label.config(text="Level %d" % (state.level+1))
-        self.move_count.config(text="Moves: %d" % (state.move_count))
+        self.move_count.config(text="Moves: %d" % state.move_count)
         self.canvas.delete(Tk.ALL)
 
         self._draw_board(self.canvas, state)
