@@ -20,8 +20,6 @@
 # TODO: pipe color doesn't completely fill space
 # TODO: stats page
 # TODO: do not clear crossed pipe until mouse release
-
-# TODO: [STRETCH]
 # TODO: custom boards
 # TODO: bridges
 # TODO: walls

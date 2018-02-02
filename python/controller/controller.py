@@ -70,7 +70,7 @@ def last_level(view, state):
 
 
 def reset_level(view, state):
-    state.start_level(state.level)
+    state.restart_level()
     view.redraw_level(state)
 
 

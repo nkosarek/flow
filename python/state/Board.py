@@ -23,6 +23,11 @@ class Board:
                 return True, dst_space
         return False, src_space
 
+    def reset_board(self):
+        for row in self.spaces:
+            for space in row:
+                space.clear_pipe()
+
     @staticmethod
     def _create_spaces(rows, cols, dots):
         # Create board of spaces

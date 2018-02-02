@@ -15,16 +15,19 @@ class GameState:
         self.level_complete = LEVEL_INCOMPLETE
 
     def start_level(self, level):
-        self._clear_level()
+        self._clear_in_level_fields()
         self.level = level
         (rows, cols, dots) = BOARD_SETUP[level]
         self.board = Board(rows, cols, dots)
         self.in_game = True
 
-    def _clear_level(self):
+    def restart_level(self):
+        self._clear_in_level_fields()
+        self.board.reset_board()
+        self.in_game = True
+
+    def _clear_in_level_fields(self):
         self.in_game = False
-        self.board = None
-        self.level = None
         self.curr_selected_space = None
         self.curr_pipe_space = None
         self.building_pipe = False
