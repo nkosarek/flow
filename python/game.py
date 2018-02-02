@@ -12,7 +12,6 @@
 # TODO: update display on timer instead of in event handlers
 # TODO: Space interface (dot space, bridge space, etc)
 # TODO: line character limit
-# TODO: restart level - don't completely clear board?
 
 # TODO: [FEATURES]
 # TODO: pipes completed counter
