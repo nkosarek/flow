@@ -1,7 +1,7 @@
 from Menu import Menu
 from LevelSelect import LevelSelect
 from Level import Level
-from config import MENU, LEVEL_SELECT, LEVEL
+from config import MENU, LEVEL_SELECT, LEVEL, REFRESH_DELAY
 
 
 class GameView:
@@ -33,13 +33,10 @@ class GameView:
         self.level.update_and_show(state)
 
     def refresh_view(self, state):
-        if state.modified:
-            # TODO?: This is a race...
-            state.modified = False
-            if state.page == MENU:
-                self._show_menu()
-            elif state.page == LEVEL_SELECT:
-                self._show_level_select()
-            elif state.page == LEVEL:
-                self._redraw_level(state)
+        if state.page == MENU:
+            self._show_menu()
+        elif state.page == LEVEL_SELECT:
+            self._show_level_select()
+        elif state.page == LEVEL:
+            self._redraw_level(state)
         self.root.after(REFRESH_DELAY, self.refresh_view, state)

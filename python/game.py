@@ -45,7 +45,6 @@ if __name__ == "__main__":
     root.bind("<Button-1>", lambda event: mouse_click(event, view, state))
     root.bind("<B1-Motion>", lambda event: mouse_drag(event, view, state))
     root.bind("<ButtonRelease-1>", lambda event: mouse_release(event, view, state))
-    root.bind("<Configure>", lambda event: window_change(view, state))
 
     root.wm_geometry("%sx%s" % (WINDOW_WIDTH, WINDOW_HEIGHT))
 

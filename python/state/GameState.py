@@ -15,7 +15,10 @@ class GameState:
         self.move_count = 0
         self.level_complete = LEVEL_INCOMPLETE
         self.page = MENU
-        self.modified = True
+
+    def go_to_level_select(self):
+        self.in_game = False
+        self.page = LEVEL_SELECT
 
     def start_level(self, level):
         self._clear_in_level_fields()
@@ -46,8 +49,9 @@ class GameState:
             self.curr_pipe_space = None
             self.building_pipe = False
             # Board not updated
-            return False
+            return
 
+        # Board to be updated
         self.curr_pipe_space = space
         self.curr_selected_space = space
         self.building_pipe = True
@@ -72,14 +76,10 @@ class GameState:
 
             self._check_new_move(space)
 
-        # Board updated
-        return True
-
     def attempt_pipe_advance(self, dst_space):
         last_selected_space = self.curr_selected_space
         src_pipe_space = self.curr_pipe_space
 
-        pipe_modified = False
         # Not currently advancing a pipe
         if src_pipe_space is None:
             self.curr_selected_space = None
@@ -100,7 +100,6 @@ class GameState:
                 Board.clear_pipe(dst_space.get_next_pipe_space())
             self.curr_pipe_space = dst_space
             self.curr_selected_space = dst_space
-            pipe_modified = True
 
         # Mouse has gone past the second dot space after completing a pipe
         elif src_pipe_space.has_dot() and not src_pipe_space.is_pipe_start():
@@ -112,13 +111,8 @@ class GameState:
                 self.board.autocomplete_pipe(src_pipe_space, dst_space)
             self.curr_pipe_space = last_pipe_space
             self.curr_selected_space = dst_space
-            pipe_modified = True
-
-        return pipe_modified
 
     def unselect_space(self, release_space):
-        board_modified = False
-
         # Pipe was being built during this mouse select sequence
         if self.building_pipe:
             # Mouse released on dot at beginning of current pipe
@@ -128,14 +122,11 @@ class GameState:
                 Board.clear_pipe(release_space)
                 self.curr_selected_space = None
                 self.curr_pipe_space = None
-                board_modified = True
 
-            elif self._check_level_complete():
-                board_modified = True
+            else:
+                self._check_level_complete()
 
             self.building_pipe = False
-
-        return board_modified
 
     def _check_new_move(self, space):
         color = space.get_pipe_color()
@@ -147,11 +138,9 @@ class GameState:
         for row in self.board.spaces:
             for space in row:
                 if not space.has_pipe():
-                    return False
+                    return
 
         if self.move_count == self.board.num_dots:
             self.level_complete = LEVEL_PERFECT
         else:
             self.level_complete = LEVEL_COMPLETE
-
-        return True
