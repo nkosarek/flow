@@ -9,7 +9,6 @@
 
 # TODO: [REFACTOR]
 # TODO: move all 'can advance' logic into spaces for attempt_pipe_advance
-# TODO: update display on timer instead of in event handlers
 # TODO: Space interface (dot space, bridge space, etc)
 # TODO: line character limit
 
