@@ -1,17 +1,13 @@
 import React, { Component } from 'react';
 import Space from './Space';
 
-const getSpace = (spaces, row, col) => {
-  return spaces[row][col];
-}
-
 const updateStateOnMouseDown = (row, col) => (prevState) => {
   const { spaces } = prevState;
-  const space = getSpace(spaces, row, col);
+  const space = Board.getSpace(spaces, row, col);
   space.pipe = 'Q';
   return {
     spaces,
-    isMouseDown: true
+    isMouseDown: true,
   };
 }
 
@@ -21,14 +17,14 @@ const updateStateOnMouseEnter = (row, col) => (prevState) => {
     return prevState;
   }
   
-  const space = getSpace(spaces, row, col);
+  const space = Board.getSpace(spaces, row, col);
   space.pipe = 'X';
   return {
     spaces,
   };
 }
 
-const updateStateOnMouseUp = () => (prevState) => {
+const updateStateOnMouseUp = () => () => {
   return {
     isMouseDown: false
   }
@@ -47,7 +43,7 @@ export default class Board extends Component {
           row: i,
           col: j,
           dot: Board.getDotFromDots(dots, cols, i, j),
-          pipe: null
+          pipe: null,
         };
       }
     }
@@ -55,11 +51,15 @@ export default class Board extends Component {
   }
 
   static getDotFromDots(dots, cols, row, col) {
-    const spaceIndex = row*cols + col;
+    const spaceIndex = (row * cols) + col;
     if( dots === null || !(spaceIndex in dots) ) {
       return null;
     }
     return dots[spaceIndex];
+  }
+
+  static getSpace = (spaces, row, col) => {
+    return spaces[row][col];
   }
 
   /*** NON-RENDER LIFECYCLE METHODS ***/
@@ -107,14 +107,14 @@ export default class Board extends Component {
   /*** GETTERS FOR RENDER ***/
 
   getSpaceDot(row, col) {
-    const {spaces} = this.state;
-    const space = getSpace(spaces, row, col);
+    const { spaces } = this.state;
+    const space = Board.getSpace(spaces, row, col);
     return space.dot;
   }
 
   getSpacePipe(row, col) {
-    const {spaces} = this.state;
-    const space = getSpace(spaces, row, col);
+    const { spaces } = this.state;
+    const space = Board.getSpace(spaces, row, col);
     return space.pipe;
   }
 
@@ -129,26 +129,26 @@ export default class Board extends Component {
     const rowRange = Array.from(new Array(rows).keys());
     const colRange = Array.from(new Array(cols).keys());
 
-    const boardRows = rowRange.map((row) =>
-        <div
-          key={row}
-          className='board-row'
-        >
-          {
-            colRange.map((col) =>
-              <Space
-                key={row*cols + col}
-                row={row}
-                col={col}
-                dot={this.getSpaceDot(row, col)}
-                pipe={this.getSpacePipe(row, col)}
-                onMouseDown={this.onMouseDown}
-                onMouseEnter={this.onMouseEnter}
-              />
-            )
-          }
-        </div>
-      );
+    const boardRows = rowRange.map(row =>
+      <div
+        key={row}
+        className='board-row'
+      >
+        {
+          colRange.map(col =>
+            <Space
+              key={(row * cols) + col}
+              row={row}
+              col={col}
+              dot={this.getSpaceDot(row, col)}
+              pipe={this.getSpacePipe(row, col)}
+              onMouseDown={this.onMouseDown}
+              onMouseEnter={this.onMouseEnter}
+            />
+          )
+        }
+      </div>
+    );
 
     return (
       <div 

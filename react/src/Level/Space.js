@@ -1,12 +1,12 @@
 import React from 'react';
 
 export default function Space({
-row,
-col,
-dot,
-pipe,
-onMouseDown,
-onMouseEnter,
+  row,
+  col,
+  dot,
+  pipe,
+  onMouseDown,
+  onMouseEnter,
 }) {
   let text = (dot === null) ? 'Ay' : 'A' + dot;
   if( pipe === null ) {
