@@ -1,5 +1,5 @@
 from Page import *
-from config import PIPE_COLORS, OVERWRITE_PIPE_COLORS, DOT_COLORS, LEVEL_COMPLETE, LEVEL_PERFECT
+from config import PIPE_COLORS, CURR_PIPE_SPACE_COLORS, DOT_COLORS, LEVEL_COMPLETE, LEVEL_PERFECT
 from controller.controller import level_back_to_level_select, last_level, reset_level, next_level
 
 
@@ -84,7 +84,8 @@ class Level(Page):
                 y0 = self.board_y0 + row * self.space_width
                 x1 = x0 + self.space_width
                 y1 = y0 + self.space_width
-                Level._draw_space(canvas, space, x0, y0, x1, y1)
+                is_curr_pipe_space = (space == state.curr_pipe_space)
+                Level._draw_space(canvas, space, x0, y0, x1, y1, is_curr_pipe_space)
 
     @staticmethod
     def _get_board_dimensions(canvas_width, canvas_height, rows, cols):
@@ -103,13 +104,15 @@ class Level(Page):
         return board_x0, board_y0, space_width
 
     @staticmethod
-    def _draw_space(canvas, space, x0, y0, x1, y1):
-        if not space.has_pipe():
-            canvas.create_rectangle(x0, y0, x1, y1,
-                                    fill="black", outline="white")
-        else:
-            canvas.create_rectangle(x0, y0, x1, y1,
-                                    fill=PIPE_COLORS[space.get_pipe_color()], outline="white")
+    def _draw_space(canvas, space, x0, y0, x1, y1, is_curr_pipe_space):
+        fill_color = "black"
+        if is_curr_pipe_space:
+            fill_color = CURR_PIPE_SPACE_COLORS[space.get_pipe_color()]
+        elif space.has_pipe():
+            fill_color = PIPE_COLORS[space.get_pipe_color()]
+
+        canvas.create_rectangle(x0, y0, x1, y1,
+                                fill=fill_color, outline="white")
 
         if space.has_dot():
             color = space.get_dot_color()

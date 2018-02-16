@@ -22,14 +22,16 @@ DOT_COLORS = [
 ]
 
 PIPE_COLORS = [
-    "#e00",
-    "#0e0",
-    "#00e",
-    "#ee0",
-    "#0ee",
-    "#e0e",
-    "#eee"
+    "#c00",
+    "#0c0",
+    "#00c",
+    "#cc0",
+    "#0cc",
+    "#c0c",
+    "#ccc"
 ]
+
+CURR_PIPE_SPACE_COLORS = DOT_COLORS
 
 OVERWRITE_PIPE_COLORS = [
     "#c00",

@@ -120,12 +120,12 @@ class GameState:
                     release_space == self.curr_pipe_space and \
                     release_space.is_pipe_start():
                 Board.clear_pipe(release_space)
-                self.curr_selected_space = None
-                self.curr_pipe_space = None
 
             else:
                 self._check_level_complete()
 
+            self.curr_selected_space = None
+            self.curr_pipe_space = None
             self.building_pipe = False
 
     def _check_new_move(self, space):
