@@ -8,11 +8,11 @@ export default function Space({
   onMouseDown,
   onMouseEnter,
 }) {
-  let text = (dot === null) ? 'Ay' : 'A' + dot;
+  let text = (dot === null) ? 'Ay' : 'A' + dot.color;
   if( pipe === null ) {
     text += 'y';
   } else {
-    text += pipe;
+    text += pipe.color;
   }
 
   return (

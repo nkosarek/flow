@@ -4,29 +4,50 @@ import Space from './Space';
 const updateStateOnMouseDown = (row, col) => (prevState) => {
   const { spaces } = prevState;
   const space = Board.getSpace(spaces, row, col);
-  space.pipe = 'Q';
+  const currPipeEnd = {row: row, col: col}
+
+  if( space.dot !== null ) {
+    const color = space.dot.color;
+    if( space.pipe === null /* TODO: || space.is_pipe_end() */) {
+      //Board.clear_pipe(spaces, space.dot.other);
+    } else {
+      //Board.clear_pipe(spaces/* TODO: , space.next */)
+    }
+    space.pipe = {color: color};
+    // TODO: Board.check_new_move(spaces, space)
+  } else if( space.pipe !== null ) {
+    //Board.clear_pipe(spaces/* TODO: , space.next */)
+    // TODO: Board.check_new_move(spaces, space)
+  }
+
   return {
     spaces,
+    currPipeEnd,
     isMouseDown: true,
   };
 }
 
 const updateStateOnMouseEnter = (row, col) => (prevState) => {
-  const { spaces, isMouseDown } = prevState;
+  const { spaces, isMouseDown, currPipeEnd } = prevState;
   if( !isMouseDown ) {
     return prevState;
   }
-  
   const space = Board.getSpace(spaces, row, col);
-  space.pipe = 'X';
+  const currPipeSpace = Board.getSpace(spaces, currPipeEnd.row, currPipeEnd.col);
+
+  space.pipe = currPipeSpace.pipe;
+  const newPipeEnd = {row: row, col: col};
+
   return {
     spaces,
+    currPipeEnd: newPipeEnd,
   };
 }
 
 const updateStateOnMouseUp = () => () => {
   return {
-    isMouseDown: false
+    isMouseDown: false,
+    currPipeEnd: null,
   }
 }
 
@@ -39,6 +60,7 @@ export default class Board extends Component {
     for( let i = 0; i < rows; i++ ) {
       spaces[i] = new Array(cols);
       for( let j = 0; j < cols; j++ ) {
+        // TODO: add dots after spaces created
         spaces[i][j] = {
           row: i,
           col: j,
@@ -55,7 +77,7 @@ export default class Board extends Component {
     if( dots === null || !(spaceIndex in dots) ) {
       return null;
     }
-    return dots[spaceIndex];
+    return {color: dots[spaceIndex]};
   }
 
   static getSpace = (spaces, row, col) => {
@@ -74,8 +96,9 @@ export default class Board extends Component {
     } = this.props;
 
     this.state = {
+      spaces: Board.createSpacesState(rows, cols, dots),
       isMouseDown: false,
-      spaces: Board.createSpacesState(rows, cols, dots)
+      currPipeEnd: null,
     };
 
     this.getSpaceDot = this.getSpaceDot.bind(this);
@@ -88,6 +111,7 @@ export default class Board extends Component {
 
   componentDidMount() {
     window.addEventListener('mouseup', this.onMouseUp);
+    console.log(window);
   }
 
   /*** EVENT HANDLERS ***/
