@@ -66,8 +66,7 @@ class Board:
             row_diff = space0.row - space1.row
             if row_diff == 1 or row_diff == -1:
                 return True
-        else:
-            return False
+        return False
 
     @staticmethod
     def compatible_dot(dot_space, curr_space):
