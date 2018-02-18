@@ -8,9 +8,9 @@ export default function Space({
   onMouseDown,
   onMouseEnter,
 }) {
-  let text = (dot === null) ? 'Ay' : 'A' + dot.color;
+  let text = (dot === null) ? '-' : dot.color.toString();
   if( pipe === null ) {
-    text += 'y';
+    text += '-';
   } else {
     text += pipe.color;
   }

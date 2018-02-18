@@ -8,7 +8,7 @@ class App extends Component {
   render() {
     let boardRows = 3;
     let boardCols = 3;
-    let dotLocations = {0:0, 4:0, 2:1, 3:1};
+    let dotLocations = [[0,0,1,1], [1,0,0,2]];
     return (
       <div className="App">
         <header className="App-header">
