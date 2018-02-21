@@ -19,7 +19,7 @@ export default function Space({
     <span
       className="game-space"
       onMouseDown={() => onMouseDown(row, col)}
-      onMouseEnter={(e) => onMouseEnter(e, row, col)}
+      onMouseEnter={() => onMouseEnter(row, col)}
     >
       <button>
         {text}

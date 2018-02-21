@@ -33,6 +33,7 @@ const updateStateOnMouseDown = (row, col) => (prevState) => {
   };
 }
 
+// TODO: Clean this up
 const updateStateOnMouseEnter = (row, col) => (prevState) => {
   const { spaces, isMouseDown, pipeEndLoc } = prevState;
   if( !isMouseDown || pipeEndLoc === null ) {
@@ -220,7 +221,7 @@ export default class Board extends Component {
     this.setState(updateStateOnMouseDown(row, col));
   }
   
-  onMouseEnter(event, row, col) {
+  onMouseEnter(row, col) {
     this.setState(updateStateOnMouseEnter(row, col));
   }
 

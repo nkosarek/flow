@@ -1,14 +1,14 @@
 import React, { Component } from 'react';
 import logo from '../logo.svg';
-import './App.css';
+import './Level.css';
 import Board from './Board';
 
-class App extends Component {
+export default class Level extends Component {
 
   render() {
-    let boardRows = 3;
-    let boardCols = 3;
-    let dotLocations = [[0,0,1,1], [1,0,0,2]];
+    const boardRows = 3;
+    const boardCols = 3;
+    const dotLocations = [[0,0,1,1], [1,0,0,2]];
     return (
       <div className="App">
         <header className="App-header">
@@ -24,6 +24,3 @@ class App extends Component {
     );
   }
 }
-
-
-export default App;
