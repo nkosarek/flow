@@ -143,8 +143,8 @@ const updateStateOnMouseUp = () => (prevState) => {
 
 const updateStateOnResetLevel = () => (prevState) => {
   let { spaces } = prevState;
-  spaces = Board.clearBoard(spaces);
-  
+  Board.clearBoard(spaces);
+
   return {
     spaces,
     numMoves: 0,

@@ -85,7 +85,6 @@ export default class Board extends Component {
         space.pipe = null;
       }
     }
-    return spaces;
   }
 
   render() {
