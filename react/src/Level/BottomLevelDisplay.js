@@ -1,18 +1,19 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 export default function TopLevelDisplay({
-  onLastLevel,
+  lastLevelPath,
   onResetLevel,
-  onNextLevel,
+  nextLevelPath
 }) {
   return (
     <div>
       <span>
-        <button
-          onClick={onLastLevel}
-        >
-          &lt;
-        </button>
+        <Link to={lastLevelPath}>
+          <button>
+            &lt;
+          </button>
+        </Link>
       </span>
       <span>
         <button
@@ -22,11 +23,11 @@ export default function TopLevelDisplay({
         </button>
       </span>
       <span>
-        <button
-          onClick={onNextLevel}
-        >
-          &gt;
-        </button>
+        <Link to={nextLevelPath}>
+          <button>
+            &gt;
+          </button>
+        </Link>
       </span>
     </div>
   );

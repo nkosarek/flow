@@ -1,17 +1,18 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 export default function TopLevelDisplay({
   numMoves,
-  onBackToLevelSelect,
+  levelSelectPath,
 }) {
   return (
     <div>
       <span>
-        <button
-          onClick={onBackToLevelSelect}
-        >
-          &lt;-Back
-        </button>
+        <Link to={levelSelectPath}>
+          <button>
+            &lt;-Back
+          </button>
+        </Link>
       </span>
       <span>
         Moves: {numMoves}

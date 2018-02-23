@@ -4,19 +4,15 @@ import './Level.css';
 import Board from './Board';
 import TopLevelDisplay from './TopLevelDisplay';
 import BottomLevelDisplay from './BottomLevelDisplay';
+import Config from '../Config';
 
-const LEVEL_SETUP = [
-  {
-    rows: 3,
-    cols: 3,
-    dots: [[0,0,1,1], [1,0,0,2]],
-  }
-]
+const {
+  LEVEL_SETUP,
+  LEVEL_SELECT_PATH,
+  LEVEL_PATH_PREFIX,
+} = Config;
 
-const onBackToLevelSelect = () => console.log("TRYNA GO TO LEVEL SELECT");
-const onLastLevel = () => console.log("TRYNA GO TO THE LAST LEVEL");
-const onNextLevel = () => console.log("TRYNA GO TO THE NEXT LEVEL");
-
+// TODO: error handling
 // TODO: updateStateOnMouseLeave (leave board)
 
 const updateStateOnMouseDown = (row, col) => (prevState) => {
@@ -170,16 +166,27 @@ export default class Level extends Component {
       levelNumber = 0,
     } = this.props;
 
-    const { rows, cols, dots } = LEVEL_SETUP[levelNumber];
+    if( !Number.isSafeInteger(levelNumber) ||
+        levelNumber < 0 ||
+        levelNumber >= LEVEL_SETUP.length ) {
+      this.state = {
+        mouseUpListenerRegistered: false,
+        error: true,
+      }
+    } else {
+      const { rows, cols, dots } = LEVEL_SETUP[levelNumber];
 
-    this.state = {
-      spaces: Board.createSpacesState(rows, cols, dots),
-      numMoves: 0,
-      isMouseDown: false,
-      pipeEndLoc: null,
-      lastColorAdvanced: null,
-      levelComplete: false,
-    };
+      this.state = {
+        spaces: Board.createSpacesState(rows, cols, dots),
+        numMoves: 0,
+        isMouseDown: false,
+        pipeEndLoc: null,
+        lastColorAdvanced: null,
+        levelComplete: false,
+        mouseUpListenerRegistered: false,
+        error: false,
+      };
+    }
 
     this.onMouseDown = this.onMouseDown.bind(this);
     this.onMouseEnter = this.onMouseEnter.bind(this);
@@ -188,7 +195,17 @@ export default class Level extends Component {
   }
 
   componentDidMount() {
-    window.addEventListener('mouseup', this.onMouseUp);
+    if( !this.state.error ) {
+      window.addEventListener('mouseup', this.onMouseUp);
+      this.setState({ mouseUpListenerRegistered: true });
+    }
+  }
+
+  componentWillUnmount() {
+    if( this.state.mouseUpListenerRegistered ) {
+      window.removeEventListener('mouseup', this.onMouseUp);
+      this.setState({ mouseUpListenerRegistered: false });
+    }
   }
 
   /*** EVENT HANDLERS ***/
@@ -212,28 +229,41 @@ export default class Level extends Component {
   /*** RENDER ***/
 
   render() {
-    /*
-    const {
-      onBackToLevelSelect,
-      onLastLevel,
-      onNextLevel,
-    } = this.props;
-    */
-  
+    const { levelNumber } = this.props;
+
     const {
       numMoves,
       spaces,
+      error,
     } = this.state;
 
+    const levelPathNumber = levelNumber + 1;
+    let lastLevelPath = LEVEL_PATH_PREFIX;
+    let nextLevelPath = LEVEL_PATH_PREFIX;
+
+    if( levelPathNumber > 1 ) {
+      lastLevelPath += levelPathNumber - 1;
+    } else {
+      lastLevelPath += levelPathNumber;
+    }
+
+    if( levelPathNumber < LEVEL_SETUP.length ) {
+      nextLevelPath += levelPathNumber + 1;
+    } else {
+      nextLevelPath += levelPathNumber;
+    }
+
     return (
-      <div className="App">
+      (error)
+      ? <p>you done fucked up</p>
+      : <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
           <h1 className="App-title">Welcome to Flow</h1>
         </header>
         <TopLevelDisplay
           numMoves={numMoves}
-          onBackToLevelSelect={onBackToLevelSelect}
+          levelSelectPath={LEVEL_SELECT_PATH}
         />
         <Board
           spaces={spaces}
@@ -241,9 +271,9 @@ export default class Level extends Component {
           onMouseEnter={this.onMouseEnter}
         />
         <BottomLevelDisplay
-          onLastLevel={onLastLevel}
+          lastLevelPath={lastLevelPath}
           onResetLevel={this.onResetLevel}
-          onNextLevel={onNextLevel}
+          nextLevelPath={nextLevelPath}
         />
         {this.state.levelComplete
           ? <p>AHHHHHH</p>
